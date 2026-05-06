@@ -1,0 +1,25 @@
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float
+from database import Base
+import datetime
+
+
+class Ticket(Base):
+    """
+    Modelo do Ticket de suporte.
+    Cada campo foi projetado pensando na escalabilidade para um ITSM real.
+    """
+    __tablename__ = "tickets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    descricao = Column(Text, nullable=False)
+    solicitante = Column(String, default="Usuário Anônimo")
+    categoria = Column(String, index=True)          # Rede, Hardware, Sistema, Segurança
+    prioridade = Column(String, index=True)          # Baixa, Média, Crítica
+    status = Column(String, default="Novo", index=True)  # Novo, Atendimento, Resolvido
+    confianca = Column(Float, default=0.0)           # Score de confiança da triagem (0-1)
+    criado_em = Column(DateTime, default=datetime.datetime.utcnow)
+    atualizado_em = Column(
+        DateTime,
+        default=datetime.datetime.utcnow,
+        onupdate=datetime.datetime.utcnow,
+    )
