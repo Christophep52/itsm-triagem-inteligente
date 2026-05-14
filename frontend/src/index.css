@@ -14,9 +14,9 @@
   --color-panel-active: #1a1a26;
   --color-surface: #111119;
 
-  --color-border: #1a1a28;
-  --color-border-hover: #2a2a3d;
-  --color-border-active: #3a3a52;
+  --color-border: #1e1e24;
+  --color-border-hover: #2e2e36;
+  --color-border-active: #3e3e48;
 
   --color-text-primary: #eaeaf0;
   --color-text-secondary: #9898b0;
@@ -366,7 +366,6 @@ body {
   padding: 12px;
   display: flex; flex-direction: column; gap: 10px;
   overflow-y: auto;
-  max-height: calc(100vh - 380px);
   flex: 1;
 }
 
