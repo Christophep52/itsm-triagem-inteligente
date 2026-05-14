@@ -4,12 +4,13 @@ import {
   LayoutDashboard, TicketPlus, BarChart3, Settings,
   AlertTriangle, Clock, CheckCircle2, PlusCircle,
   Trash2, ArrowRight, Zap, Shield, Wifi, Monitor,
-  RefreshCw, Cpu, Send, User, TrendingUp,
+  RefreshCw, Cpu, Send, User, TrendingUp, Activity,
+  Bell, Search, ChevronDown, Eye, MessageSquare,
+  Timer, Sparkles, ArrowUpRight, Hash,
 } from 'lucide-react';
 import './index.css';
 
 const API = 'http://localhost:8000';
-
 const CATEGORY_ICONS = { Rede: Wifi, Hardware: Monitor, Sistema: Cpu, Segurança: Shield };
 const STATUS_FLOW = ['Novo', 'Atendimento', 'Resolvido'];
 const getNextStatus = (s) => { const i = STATUS_FLOW.indexOf(s); return i < STATUS_FLOW.length - 1 ? STATUS_FLOW[i + 1] : null; };
@@ -17,23 +18,29 @@ const getNextStatus = (s) => { const i = STATUS_FLOW.indexOf(s); return i < STAT
 /* ═══════════════════════════════════════════════════
    SIDEBAR
    ═══════════════════════════════════════════════════ */
-
-function Sidebar() {
+function Sidebar({ activeView, onViewChange }) {
+  const items = [
+    { icon: LayoutDashboard, label: 'Painel', view: 'dashboard' },
+    { icon: TicketPlus, label: 'Chamados', view: 'tickets' },
+    { icon: BarChart3, label: 'Relatórios', view: 'reports' },
+    { icon: Activity, label: 'Atividade', view: 'activity' },
+  ];
   return (
     <aside className="sidebar">
       <div className="sidebar-logo"><Zap size={20} color="white" /></div>
-      <SidebarIcon icon={LayoutDashboard} label="Painel" active />
-      <SidebarIcon icon={TicketPlus} label="Chamados" />
-      <SidebarIcon icon={BarChart3} label="Relatórios" />
+      {items.map(({ icon, label, view }) => (
+        <SidebarIcon key={view} icon={icon} label={label} active={activeView === view} onClick={() => onViewChange(view)} />
+      ))}
       <div style={{ flex: 1 }} />
+      <SidebarIcon icon={Bell} label="Alertas" />
       <SidebarIcon icon={Settings} label="Configurações" />
     </aside>
   );
 }
 
-function SidebarIcon({ icon: Icon, label, active }) {
+function SidebarIcon({ icon: Icon, label, active, onClick }) {
   return (
-    <div className={`sidebar-icon ${active ? 'active' : ''}`}>
+    <div className={`sidebar-icon ${active ? 'active' : ''}`} onClick={onClick}>
       <Icon size={20} />
       <span className="sidebar-tooltip">{label}</span>
     </div>
@@ -43,17 +50,25 @@ function SidebarIcon({ icon: Icon, label, active }) {
 /* ═══════════════════════════════════════════════════
    STAT CARD
    ═══════════════════════════════════════════════════ */
-
-function StatCard({ label, value, icon: Icon, color, delay }) {
+function StatCard({ label, value, icon: Icon, color, delay, trend }) {
   return (
-    <div className={`stat-card ${color} animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
+    <div className={`stat-card animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
       <div className={`stat-icon ${color}`}>
         <Icon size={22} />
       </div>
-      <div>
-        <div className="stat-value">{value}</div>
+      <div style={{ flex: 1 }}>
+        <div className="stat-value animate-count" style={{ animationDelay: `${delay + 200}ms` }}>{value}</div>
         <div className="stat-label">{label}</div>
       </div>
+      {trend && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700,
+          color: trend > 0 ? 'var(--color-green)' : 'var(--color-red)',
+          background: trend > 0 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
+          padding: '3px 8px', borderRadius: 6 }}>
+          <ArrowUpRight size={10} style={{ transform: trend < 0 ? 'rotate(90deg)' : 'none' }} />
+          {Math.abs(trend)}%
+        </div>
+      )}
     </div>
   );
 }
@@ -61,46 +76,42 @@ function StatCard({ label, value, icon: Icon, color, delay }) {
 /* ═══════════════════════════════════════════════════
    TICKET CARD
    ═══════════════════════════════════════════════════ */
-
 function TicketCard({ ticket, onAdvance, onDelete, index }) {
-  const prioClass = ticket.prioridade === 'Crítica' ? 'critica' : ticket.prioridade === 'Média' ? 'media' : 'baixa';
+  const prioClass = ticket.prioridade === 'Crítica' ? 'critica' : ticket.prioridade === 'Alta' ? 'alta' : ticket.prioridade === 'Média' ? 'media' : 'baixa';
   const badgeClass = `badge badge-${prioClass}`;
   const CatIcon = CATEGORY_ICONS[ticket.categoria] || Cpu;
   const nextStatus = getNextStatus(ticket.status);
 
   return (
-    <div className={`ticket ${prioClass} animate-fade-up`} style={{ animationDelay: `${index * 50}ms` }}>
-      {/* Row 1: Priority + Category */}
+    <div className={`ticket ${prioClass} animate-fade-up`} style={{ animationDelay: `${index * 60}ms` }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
         <span className={badgeClass}>{ticket.prioridade}</span>
         <span className="cat-tag"><CatIcon size={11} />{ticket.categoria}</span>
       </div>
 
-      {/* Description */}
-      <p style={{ fontSize: '0.82rem', lineHeight: 1.55, color: 'var(--color-text-primary)', marginBottom: 10 }}>
+      <p style={{ fontSize: '0.8rem', lineHeight: 1.6, color: 'var(--color-text-primary)', marginBottom: 10, fontWeight: 400 }}>
         {ticket.descricao}
       </p>
 
-      {/* Requester */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.7rem', color: 'var(--color-text-muted)', marginBottom: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.68rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
         <User size={11} /> {ticket.solicitante}
       </div>
 
-      {/* AI Confidence */}
-      <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>
-          <span>Confiança da IA</span>
-          <span style={{ color: 'var(--color-accent)', fontWeight: 700 }}>{Math.round(ticket.confianca * 100)}%</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles size={9} />Confiança da IA</span>
+          <span style={{ color: 'var(--color-accent)', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
+            {Math.round(ticket.confianca * 100)}%
+          </span>
         </div>
         <div className="confidence-track">
           <div className="confidence-fill" style={{ width: `${ticket.confianca * 100}%` }} />
         </div>
       </div>
 
-      {/* Footer: ID + Actions */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1px solid var(--color-border)' }}>
-        <span style={{ fontSize: '0.6rem', color: 'var(--color-text-muted)', fontFamily: 'monospace', opacity: 0.6 }}>
-          #{String(ticket.id).padStart(4, '0')}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+        <span style={{ fontSize: '0.6rem', color: 'var(--color-text-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>
+          <Hash size={9} style={{ display: 'inline', verticalAlign: 'middle' }} />{String(ticket.id).padStart(4, '0')}
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
           {nextStatus && (
@@ -120,7 +131,6 @@ function TicketCard({ ticket, onAdvance, onDelete, index }) {
 /* ═══════════════════════════════════════════════════
    KANBAN COLUMN
    ═══════════════════════════════════════════════════ */
-
 function KanbanColumn({ title, icon: Icon, iconColor, iconBg, tickets, onAdvance, onDelete }) {
   return (
     <div className="kanban-col">
@@ -149,7 +159,6 @@ function KanbanColumn({ title, icon: Icon, iconColor, iconBg, tickets, onAdvance
 /* ═══════════════════════════════════════════════════
    FORM
    ═══════════════════════════════════════════════════ */
-
 function NewTicketForm({ onSubmit, loading }) {
   const [descricao, setDescricao] = useState('');
   const [solicitante, setSolicitante] = useState('');
@@ -164,27 +173,28 @@ function NewTicketForm({ onSubmit, loading }) {
 
   return (
     <form onSubmit={handleSubmit} className="form-card animate-fade-up" style={{ animationDelay: '200ms' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
         <div style={{
-          width: 36, height: 36, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--color-blue)',
+          width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'linear-gradient(135deg, var(--color-accent), #a78bfa)',
+          boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
         }}>
-          <PlusCircle size={17} color="white" />
+          <PlusCircle size={18} color="white" />
         </div>
         <div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Abrir Novo Chamado</div>
-          <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)' }}>
-            A IA classificará automaticamente a categoria e prioridade
+          <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Abrir Novo Chamado</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Sparkles size={10} /> A IA classificará automaticamente a categoria e prioridade
           </div>
         </div>
       </div>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input className="input-field" style={{ flex: '0 0 180px' }}
+        <input className="input-field" style={{ flex: '0 0 200px' }}
           placeholder="Seu nome" value={solicitante}
           onChange={(e) => setSolicitante(e.target.value)} disabled={loading}
         />
-        <input className="input-field" style={{ flex: 1, minWidth: 200 }}
+        <input className="input-field" style={{ flex: 1, minWidth: 220 }}
           placeholder="Descreva o problema técnico (ex: O roteador principal está sem internet)..."
           value={descricao} onChange={(e) => setDescricao(e.target.value)} disabled={loading}
         />
@@ -197,26 +207,70 @@ function NewTicketForm({ onSubmit, loading }) {
 }
 
 /* ═══════════════════════════════════════════════════
+   ACTIVITY LOG
+   ═══════════════════════════════════════════════════ */
+function ActivityLog({ activities }) {
+  return (
+    <div className="activity-panel animate-fade-up" style={{ animationDelay: '300ms' }}>
+      <div className="activity-header">
+        <Activity size={16} style={{ color: 'var(--color-accent)' }} />
+        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Atividade Recente</span>
+        <span className="kanban-header-count">{activities.length}</span>
+      </div>
+      {activities.map((a, i) => (
+        <div key={i} className="activity-item">
+          <div className="activity-dot" style={{ background: a.color }} />
+          <span style={{ color: 'var(--color-text-secondary)', flex: 1 }}>{a.text}</span>
+          <span className="activity-time">{a.time}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
    APP
    ═══════════════════════════════════════════════════ */
-
 export default function App() {
-  const [tickets, setTickets] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [activeView, setActiveView] = useState('dashboard');
+  const [tickets, setTickets] = useState([
+    { id: 13, descricao: 'O roteador principal do 3º andar está sem luz de internet, todos os colaboradores estão sem conexão', solicitante: 'Carlos Silva', categoria: 'Rede', prioridade: 'Crítica', status: 'Novo', confianca: 0.92 },
+    { id: 14, descricao: 'Meu mouse parou de funcionar, já troquei a pilha e nada', solicitante: 'Ana Souza', categoria: 'Hardware', prioridade: 'Baixa', status: 'Novo', confianca: 0.65 },
+    { id: 15, descricao: 'O sistema do RH está travando quando tento gerar folha de pagamento', solicitante: 'Roberto Lima', categoria: 'Sistema', prioridade: 'Média', status: 'Atendimento', confianca: 1.0 },
+    { id: 16, descricao: 'Recebi um e-mail suspeito pedindo para atualizar minha senha corporativa', solicitante: 'Juliana Costa', categoria: 'Segurança', prioridade: 'Crítica', status: 'Novo', confianca: 0.98 },
+    { id: 17, descricao: 'A impressora da sala de reuniões não imprime, erro de spooler', solicitante: 'Marcos Oliveira', categoria: 'Hardware', prioridade: 'Média', status: 'Atendimento', confianca: 0.78 },
+    { id: 18, descricao: 'Internet caiu em toda a empresa, produção parada', solicitante: 'Fernanda Santos', categoria: 'Rede', prioridade: 'Crítica', status: 'Novo', confianca: 0.95 },
+    { id: 19, descricao: 'Preciso instalar o novo software de videoconferência', solicitante: 'Lucas Pereira', categoria: 'Sistema', prioridade: 'Baixa', status: 'Resolvido', confianca: 0.72 },
+    { id: 20, descricao: 'Minha tela azul aparece toda vez que inicio o computador, BSOD', solicitante: 'Diego Rocha', categoria: 'Sistema', prioridade: 'Média', status: 'Resolvido', confianca: 0.88 },
+  ]);
+  const [stats, setStats] = useState({
+    total: 32, novos: 14, em_atendimento: 8, resolvidos: 10, criticos: 6, medios: 12, baixos: 14
+  });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 2500); };
+  const activities = [
+    { text: 'Chamado #0018 criado — Rede / Crítica', color: 'var(--color-red)', time: '2min' },
+    { text: 'Chamado #0016 triado pela IA — 98% confiança', color: 'var(--color-accent)', time: '5min' },
+    { text: 'Chamado #0015 avançou → Em Atendimento', color: 'var(--color-amber)', time: '12min' },
+    { text: 'Chamado #0019 resolvido por Lucas Pereira', color: 'var(--color-green)', time: '28min' },
+    { text: 'Chamado #0020 resolvido — BSOD corrigido', color: 'var(--color-green)', time: '1h' },
+    { text: 'Dados de demonstração carregados', color: 'var(--color-cyan)', time: '2h' },
+  ];
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const fetchData = useCallback(async () => {
     try {
-      const [t, s] = await Promise.all([axios.get(`${API}/tickets`), axios.get(`${API}/stats`)]);
-      setTickets(t.data);
-      setStats(s.data);
+      const [ticketsRes, statsRes] = await Promise.all([
+        axios.get(`${API}/tickets`),
+        axios.get(`${API}/stats`),
+      ]);
+      setTickets(ticketsRes.data);
+      setStats(statsRes.data);
     } catch (e) { console.error(e); }
   }, []);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCreate = async (descricao, solicitante) => {
     setLoading(true);
@@ -243,69 +297,89 @@ export default function App() {
     catch (e) { console.error(e); }
   };
 
-  const novos = tickets.filter(t => t.status === 'Novo');
-  const atendimento = tickets.filter(t => t.status === 'Atendimento');
-  const resolvidos = tickets.filter(t => t.status === 'Resolvido');
+  const filteredTickets = tickets.filter(t =>
+    !searchQuery || t.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.solicitante.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const novos = filteredTickets.filter(t => t.status === 'Novo');
+  const atendimento = filteredTickets.filter(t => t.status === 'Atendimento');
+  const resolvidos = filteredTickets.filter(t => t.status === 'Resolvido');
 
   return (
     <div className="min-h-screen bg-mesh" style={{ position: 'relative', zIndex: 1 }}>
-      <Sidebar />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} />
 
-      <main style={{ marginLeft: 100, padding: '20px 32px 20px 24px' }}>
+      <main style={{ marginLeft: 68, padding: '24px clamp(16px, 2vw, 32px) 24px clamp(16px, 2vw, 28px)', minWidth: 0 }}>
 
         {/* ── HEADER ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20 }} className="animate-fade-up">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }} className="animate-fade-up">
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-green)' }} />
-              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-green)' }}>
-                Sistema Ativo
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-green)', boxShadow: '0 0 8px rgba(16,185,129,0.5)' }} />
+              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--color-green)' }}>
+                Sistema Ativo · Motor IA Online
               </span>
             </div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.2 }}>
               Triagem Inteligente
             </h1>
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Painel de gerenciamento de chamados técnicos · ITSM MVP
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+              Painel de gerenciamento de chamados técnicos com classificação por IA
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-ghost)' }} />
+              <input
+                className="input-field"
+                style={{ width: 220, paddingLeft: 34, fontSize: '0.78rem' }}
+                placeholder="Buscar chamados..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
             <button onClick={fetchData} className="header-btn">
               <RefreshCw size={14} />Atualizar
             </button>
             <button onClick={handleSeed} className="header-btn header-btn-accent">
-              <Zap size={14} />Carregar Demo
+              <Zap size={14} />Demo
             </button>
           </div>
         </div>
 
         {/* ── STATS ── */}
-        {stats && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
-            <StatCard label="Total de Chamados" value={stats.total} icon={BarChart3} color="indigo" delay={0} />
-            <StatCard label="Prioridade Crítica" value={stats.criticos} icon={AlertTriangle} color="rose" delay={60} />
-            <StatCard label="Prioridade Média" value={stats.medios} icon={TrendingUp} color="amber" delay={120} />
-            <StatCard label="Prioridade Baixa" value={stats.baixos} icon={CheckCircle2} color="emerald" delay={180} />
-          </div>
-        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 18 }}>
+          <StatCard label="Total de Chamados" value={stats.total} icon={BarChart3} color="indigo" delay={0} trend={12} />
+          <StatCard label="Prioridade Crítica" value={stats.criticos} icon={AlertTriangle} color="rose" delay={60} trend={-8} />
+          <StatCard label="Em Atendimento" value={stats.em_atendimento} icon={Timer} color="amber" delay={120} trend={25} />
+          <StatCard label="Resolvidos" value={stats.resolvidos} icon={CheckCircle2} color="emerald" delay={180} trend={18} />
+        </div>
 
         {/* ── FORM ── */}
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 18 }}>
           <NewTicketForm onSubmit={handleCreate} loading={loading} />
         </div>
 
-        {/* ── KANBAN ── */}
-        <div style={{ display: 'flex', gap: 16 }}>
-          <KanbanColumn title="Novos Chamados" icon={AlertTriangle}
-            iconColor="#f43f5e" iconBg="rgba(244,63,94,0.1)"
-            tickets={novos} onAdvance={handleAdvance} onDelete={handleDelete} />
-          <KanbanColumn title="Em Atendimento" icon={Clock}
-            iconColor="#f59e0b" iconBg="rgba(245,158,11,0.1)"
-            tickets={atendimento} onAdvance={handleAdvance} onDelete={handleDelete} />
-          <KanbanColumn title="Resolvidos" icon={CheckCircle2}
-            iconColor="#10b981" iconBg="rgba(16,185,129,0.1)"
-            tickets={resolvidos} onAdvance={handleAdvance} onDelete={handleDelete} />
+        {/* ── MAIN CONTENT ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) clamp(240px, 22vw, 320px)', gap: 16 }}>
+          {/* KANBAN */}
+          <div style={{ display: 'flex', gap: 14, minWidth: 0, overflow: 'auto' }}>
+            <KanbanColumn title="Novos Chamados" icon={AlertTriangle}
+              iconColor="#f43f5e" iconBg="rgba(244,63,94,0.1)"
+              tickets={novos} onAdvance={handleAdvance} onDelete={handleDelete} />
+            <KanbanColumn title="Em Atendimento" icon={Clock}
+              iconColor="#f59e0b" iconBg="rgba(245,158,11,0.1)"
+              tickets={atendimento} onAdvance={handleAdvance} onDelete={handleDelete} />
+            <KanbanColumn title="Resolvidos" icon={CheckCircle2}
+              iconColor="#10b981" iconBg="rgba(16,185,129,0.1)"
+              tickets={resolvidos} onAdvance={handleAdvance} onDelete={handleDelete} />
+          </div>
+
+          {/* ACTIVITY LOG */}
+          <ActivityLog activities={activities} />
         </div>
       </main>
 

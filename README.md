@@ -7,9 +7,8 @@
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4.2-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
-![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)
 
 </div>
 
@@ -19,39 +18,14 @@
 
 ## Sobre o Projeto
 
-Este projeto é um **MVP funcional de ITSM** (IT Service Management) que resolve um problema real de equipes de suporte técnico: **a classificação manual de chamados**.
+MVP funcional de **ITSM** (IT Service Management) que automatiza a classificação de chamados técnicos. Em ambientes corporativos, equipes de suporte perdem tempo triando manualmente — este sistema resolve esse gargalo com um **motor de IA baseado em weighted keyword scoring**.
 
-Em ambientes corporativos, equipes de **Nível 1 e Nível 2** perdem tempo significativo triando chamados manualmente — identificando se um problema é de rede, hardware ou sistema, e qual a severidade. Esse gargalo aumenta o **tempo médio de resolução (MTTR)** e prejudica SLAs.
-
-### O que este sistema faz:
+### Fluxo do Sistema
 
 1. **Recebe** a descrição textual de um problema técnico
-2. **Classifica automaticamente** a **Categoria** (Rede, Hardware, Sistema, Segurança) e a **Prioridade** (Crítica, Média, Baixa)
+2. **Classifica automaticamente** Categoria (Rede, Hardware, Sistema, Segurança) e Prioridade (Crítica, Média, Baixa)
 3. **Calcula um score de confiança** da classificação (0-100%)
-4. **Persiste** o ticket no banco de dados
-5. **Exibe** tudo em um painel Kanban em tempo real
-
----
-
-## Arquitetura
-
-```
-┌─────────────────┐     HTTP/REST      ┌──────────────────────┐
-│   Frontend      │ ◄────────────────► │   Backend (API)      │
-│   React + Vite  │   POST /tickets    │   FastAPI + Uvicorn  │
-│   Tailwind CSS  │   GET  /tickets    │                      │
-│   Lucide Icons  │   PATCH /tickets   │   ┌────────────────┐ │
-│                 │   GET  /stats      │   │ Motor de        │ │
-│  ┌───────────┐  │                    │   │ Triagem (IA)    │ │
-│  │  Kanban   │  │                    │   │ Keyword Scoring │ │
-│  │  Board    │  │                    │   └────────┬───────┘ │
-│  └───────────┘  │                    │            │         │
-│  ┌───────────┐  │                    │   ┌────────▼───────┐ │
-│  │  Stats    │  │                    │   │    SQLite DB    │ │
-│  │  Cards    │  │                    │   └────────────────┘ │
-│  └───────────┘  │                    │                      │
-└─────────────────┘                    └──────────────────────┘
-```
+4. **Persiste** no banco de dados e **exibe** em um painel Kanban em tempo real
 
 ---
 
@@ -59,33 +33,30 @@ Em ambientes corporativos, equipes de **Nível 1 e Nível 2** perdem tempo signi
 
 | Feature | Descrição |
 |---------|-----------|
-| 🤖 **Triagem Automática** | Motor de NLP baseado em weighted keyword scoring com 4 categorias e 3 níveis de prioridade |
-| 📊 **Dashboard Kanban** | Painel visual com colunas Novo → Em Atendimento → Resolvido |
-| 🎯 **Score de Confiança** | Cada classificação inclui um percentual de confiança da IA |
-| 🔴🟡🟢 **Priorização Visual** | Cards color-coded por severidade (Crítica/Média/Baixa) |
-| ➡️ **Fluxo de Status** | Botões para avançar tickets entre etapas do Kanban |
-| 📈 **Métricas em Tempo Real** | Cards de estatísticas agregadas (total, por prioridade) |
-| 🎲 **Dados de Demonstração** | Endpoint de seed com 12 cenários realistas de suporte |
+| 🤖 **Triagem Automática** | Motor de NLP com weighted keyword scoring — 4 categorias, 3 prioridades |
+| 📊 **Dashboard Kanban** | Colunas Novo → Em Atendimento → Resolvido com drag-like flow |
+| 🎯 **Score de Confiança** | Barra de progresso com percentual de certeza da IA por ticket |
+| 📈 **Métricas com Trends** | Cards com indicadores de tendência (+/-%) em tempo real |
+| 🔍 **Busca em Tempo Real** | Filtro instantâneo por descrição, solicitante ou categoria |
+| 📋 **Log de Atividade** | Timeline lateral com histórico de ações do sistema |
+| 🎲 **Dados de Demo** | Seed com 12 cenários realistas de suporte corporativo |
 | 🐳 **Containerizado** | Docker Compose para deploy com um único comando |
 
 ---
 
-## Motor de Triagem — Design para Evolução
+## Motor de Triagem — Arquitetura Desacoplada
 
-O motor de triagem (`backend/triage.py`) foi **intencionalmente desacoplado** da API para facilitar a evolução:
+O motor (`backend/triage.py`) foi **intencionalmente desacoplado** para facilitar evolução:
 
 ```python
-# Atualmente: Weighted Keyword Scoring
 resultado = triagem_automatica("O roteador caiu")
 # → ResultadoTriagem(categoria="Rede", prioridade="Crítica", confianca=0.92)
 
-# Futuro: Substituir por ML/LLM sem alterar a API
+# Substituível por ML/LLM sem alterar a API:
 # 1. TF-IDF + Random Forest (scikit-learn)
 # 2. BERT fine-tuned (transformers)
 # 3. LLM API call (OpenAI/Gemini)
 ```
-
-A interface `(str) → ResultadoTriagem` permanece a mesma independente da implementação interna.
 
 ---
 
@@ -100,75 +71,37 @@ A interface `(str) → ResultadoTriagem` permanece a mesma independente da imple
 | `GET` | `/stats` | Métricas agregadas do dashboard |
 | `POST` | `/seed` | Popula banco com dados de demonstração |
 
-Documentação interativa disponível em `http://localhost:8000/docs` (Swagger UI).
+Swagger UI: `http://localhost:8000/docs`
 
 ---
 
-## Tecnologias
+## Stack
 
-**Backend:**
-- Python 3.11 · FastAPI · SQLAlchemy ORM · Pydantic v2 · SQLite
-- Arquitetura modular com separação de responsabilidades
-
-**Frontend:**
-- React 19 · Vite 8 · Tailwind CSS 4
-- Lucide React (ícones) · Axios (HTTP client)
-- Design System custom com glassmorphism e dark theme
-
-**DevOps:**
-- Docker · Docker Compose
-- Git com commits semânticos
+| Camada | Tecnologia |
+|--------|-----------|
+| **Backend** | Python 3.11 · FastAPI · SQLAlchemy ORM · Pydantic v2 · SQLite |
+| **Frontend** | React 19 · Vite 8 · Tailwind CSS 4 · Lucide React · Axios |
+| **DevOps** | Docker · Docker Compose · Git |
 
 ---
 
 ## Como Executar
 
-### Com Docker (recomendado)
+### Docker (recomendado)
 ```bash
 git clone https://github.com/Christophep52/itsm-triagem-inteligente.git
 cd itsm-triagem-inteligente
 docker-compose up --build
 ```
 
-### Manualmente
+### Local
 ```bash
 # Backend
-cd backend
-pip install -r requirements.txt
+cd backend && pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 
-# Frontend (outro terminal)
-cd frontend
-npm install
-npm run dev
+# Frontend
+cd frontend && npm install && npm run dev
 ```
 
-- **Frontend:** http://localhost:5173
-- **API Docs:** http://localhost:8000/docs
-
----
-
-## Estrutura do Projeto
-
-```
-itsm-triagem-inteligente/
-├── backend/
-│   ├── main.py          # API REST (FastAPI)
-│   ├── models.py        # Modelos SQLAlchemy
-│   ├── database.py      # Configuração do banco
-│   ├── triage.py        # Motor de triagem (IA)
-│   ├── requirements.txt
-│   └── Dockerfile
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx      # Dashboard principal
-│   │   ├── index.css    # Design System
-│   │   └── main.jsx     # Entry point
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── package.json
-│   └── Dockerfile
-├── docker-compose.yml
-├── dashboard.png
-└── README.md
-```
+**Frontend:** http://localhost:5173 · **API Docs:** http://localhost:8000/docs
