@@ -167,8 +167,7 @@ function NewTicketForm({ onSubmit, loading }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <div style={{
           width: 36, height: 36, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-          boxShadow: '0 4px 16px -4px rgba(99,102,241,0.4)',
+          background: 'var(--color-blue)',
         }}>
           <PlusCircle size={17} color="white" />
         </div>
@@ -258,8 +257,8 @@ export default function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 20 }} className="animate-fade-up">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#34d399', boxShadow: '0 0 8px #34d399' }} />
-              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#34d399' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-green)' }} />
+              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--color-green)' }}>
                 Sistema Ativo
               </span>
             </div>
