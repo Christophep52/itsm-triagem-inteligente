@@ -545,3 +545,16 @@ body {
   font-size: 0.75rem;
   font-weight: 500;
 }
+
+/* ===========================================
+   SELECTION & MISC
+   =========================================== */
+
+::selection {
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--color-text-primary);
+}
+
+.empty-state-icon {
+  animation: fade-in 1.5s ease-in-out infinite alternate;
+}
