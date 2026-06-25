@@ -8,6 +8,7 @@ motor de palavras-chave ponderadas (vide triage.py).
 
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,7 +27,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], # Restringido para segurança
+
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -96,9 +98,9 @@ def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
 
 
 @app.get("/tickets", response_model=List[TicketResponse])
-def listar_tickets(db: Session = Depends(get_db)):
+def listar_tickets(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Lista todos os tickets ordenados por data de criação (mais recente primeiro)."""
-    return db.query(models.Ticket).order_by(models.Ticket.criado_em.desc()).all()
+    return db.query(models.Ticket).order_by(models.Ticket.criado_em.desc()).offset(skip).limit(limit).all()
 
 
 @app.patch("/tickets/{ticket_id}", response_model=TicketResponse)
@@ -137,21 +139,29 @@ def deletar_ticket(ticket_id: int, db: Session = Depends(get_db)):
 
 @app.get("/stats", response_model=StatsResponse)
 def obter_estatisticas(db: Session = Depends(get_db)):
-    """Retorna métricas agregadas do painel de controle."""
-    todos = db.query(models.Ticket).all()
-
-    por_categoria = {}
-    for t in todos:
-        por_categoria[t.categoria] = por_categoria.get(t.categoria, 0) + 1
+    """Retorna métricas agregadas do painel de controle via funções agregadas SQL O(1)."""
+    total = db.query(func.count(models.Ticket.id)).scalar() or 0
+    
+    status_counts = dict(db.query(models.Ticket.status, func.count(models.Ticket.id)).group_by(models.Ticket.status).all())
+    novos = status_counts.get("Novo", 0)
+    em_atendimento = status_counts.get("Atendimento", 0)
+    resolvidos = status_counts.get("Resolvido", 0)
+    
+    pri_counts = dict(db.query(models.Ticket.prioridade, func.count(models.Ticket.id)).group_by(models.Ticket.prioridade).all())
+    criticos = pri_counts.get("Crítica", 0)
+    medios = pri_counts.get("Média", 0)
+    baixos = pri_counts.get("Baixa", 0)
+    
+    por_categoria = dict(db.query(models.Ticket.categoria, func.count(models.Ticket.id)).group_by(models.Ticket.categoria).all())
 
     return StatsResponse(
-        total=len(todos),
-        novos=sum(1 for t in todos if t.status == "Novo"),
-        em_atendimento=sum(1 for t in todos if t.status == "Atendimento"),
-        resolvidos=sum(1 for t in todos if t.status == "Resolvido"),
-        criticos=sum(1 for t in todos if t.prioridade == "Crítica"),
-        medios=sum(1 for t in todos if t.prioridade == "Média"),
-        baixos=sum(1 for t in todos if t.prioridade == "Baixa"),
+        total=total,
+        novos=novos,
+        em_atendimento=em_atendimento,
+        resolvidos=resolvidos,
+        criticos=criticos,
+        medios=medios,
+        baixos=baixos,
         por_categoria=por_categoria,
     )
 

@@ -105,6 +105,14 @@ PRIORIDADES = {
 }
 
 
+# Pré-compilação dos regexes para performance (evita compilar a cada requisição)
+for dict_config in (CATEGORIAS, PRIORIDADES):
+    for classe, config in dict_config.items():
+        config["padroes"] = []
+        for palavra, peso in config["palavras"].items():
+            pattern = re.compile(re.escape(palavra), re.IGNORECASE)
+            config["padroes"].append((pattern, peso))
+
 @dataclass
 class ResultadoTriagem:
     """Resultado estruturado da triagem automática."""
@@ -115,16 +123,13 @@ class ResultadoTriagem:
 
 def _calcular_scores(texto: str, dicionario: dict) -> dict:
     """
-    Calcula o score de cada classe com base nas palavras-chave encontradas.
-    Retorna um dict {classe: score_total}.
+    Calcula o score de cada classe iterando sobre os regexes pré-compilados.
     """
     scores = {}
     for classe, config in dicionario.items():
         score = 0
-        for palavra, peso in config["palavras"].items():
-            # Busca case-insensitive por cada termo no texto
-            pattern = re.escape(palavra)
-            matches = re.findall(pattern, texto, re.IGNORECASE)
+        for pattern, peso in config["padroes"]:
+            matches = pattern.findall(texto)
             score += len(matches) * peso
         scores[classe] = score
     return scores
