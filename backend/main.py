@@ -9,7 +9,7 @@ motor de palavras-chave ponderadas (vide triage.py).
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -66,8 +66,7 @@ class TicketResponse(BaseModel):
     status: str
     confianca: float
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StatsResponse(BaseModel):
