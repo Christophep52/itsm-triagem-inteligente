@@ -29,6 +29,17 @@ MVP funcional de **ITSM** (IT Service Management) que automatiza a classificaç�
 
 ---
 
+## 📌 Destaque para Recrutadores & Liderança Técnica
+
+Este projeto demonstra competências avançadas de **Engenharia de Software, Padrões de Arquitetura e Foco em Valor de Negócio**:
+
+* 💼 **Impacto no Negócio (ROI & MTTR):** Em centrais de serviço corporativas, o tempo de triagem manual consome até 30% do ciclo de vida de um chamado. Esta solução automatiza o encaminhamento inicial, reduzindo o **MTTR (Mean Time to Resolve)** e aumentando o **FCR (First Contact Resolution)**.
+* 🏗️ **Design Patterns & Desacoplamento:** O motor de NLP utiliza o *Strategy Pattern* (`backend/triage.py`), permitindo substituir o algoritmo algorítmico atual por modelos de Machine Learning (BERT, Scikit-Learn) ou LLMs via API (OpenAI/Gemini) **sem alterar uma única linha dos controladores de API ou do frontend**.
+* 🛡️ **Qualidade & Segurança de Tipos:** Código backend fortemente tipado com **Python 3.11+ e Pydantic v2**, garantindo contratos de API invioláveis, aliado a um frontend reativo em **React 19 e TypeScript/Vite**, eliminando erros em tempo de execução.
+* ⚡ **Pronto para Produção:** Configuração completa com CORS dinâmico, UTC com timezone-aware (evitando bugs de fuso horário em servidores globais) e orquestração Docker Compose "zero-config".
+
+---
+
 ## Funcionalidades
 
 | Feature | Descrição |

@@ -17,9 +17,10 @@ class Ticket(Base):
     prioridade = Column(String, index=True)          # Baixa, Média, Crítica
     status = Column(String, default="Novo", index=True)  # Novo, Atendimento, Resolvido
     confianca = Column(Float, default=0.0)           # Score de confiança da triagem (0-1)
-    criado_em = Column(DateTime, default=datetime.datetime.utcnow)
+    criado_em = Column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
     atualizado_em = Column(
         DateTime,
-        default=datetime.datetime.utcnow,
-        onupdate=datetime.datetime.utcnow,
+        default=lambda: datetime.datetime.now(datetime.timezone.utc),
+        onupdate=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
+
