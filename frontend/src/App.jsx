@@ -97,9 +97,18 @@ function TicketCard({ ticket, onAdvance, onDelete, index }) {
         <User size={11} /> {ticket.solicitante}
       </div>
 
+      <div style={{ background: 'rgba(124, 58, 237, 0.08)', border: '1px solid rgba(124, 58, 237, 0.2)', borderRadius: 8, padding: '8px 10px', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', marginBottom: 4 }}>
+          <Sparkles size={11} /> DIAGNÓSTICO NEURAL IA
+        </div>
+        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>
+          Categoria semântica: <strong style={{ color: 'white' }}>{ticket.categoria}</strong> · Urgência: <strong style={{ color: 'white' }}>{ticket.prioridade}</strong>
+        </div>
+      </div>
+
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles size={9} />Confiança da IA</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles size={9} />Score de Confiança NLP</span>
           <span style={{ color: 'var(--color-accent)', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
             {Math.round(ticket.confianca * 100)}%
           </span>
@@ -182,24 +191,41 @@ function NewTicketForm({ onSubmit, loading }) {
           <PlusCircle size={18} color="white" />
         </div>
         <div>
-          <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Abrir Novo Chamado</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Abrir Novo Chamado para Triagem IA</div>
           <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Sparkles size={10} /> A IA classificará automaticamente a categoria e prioridade
+            <Sparkles size={10} /> O motor de NLP avaliará semântica e calculará urgência autonomamente
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-        <input className="input-field" style={{ flex: '0 0 200px' }}
-          placeholder="Seu nome" value={solicitante}
-          onChange={(e) => setSolicitante(e.target.value)} disabled={loading}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+          Descrição do Problema
+        </label>
+        <textarea
+          className="input-field"
+          style={{ width: '100%', height: 80, resize: 'vertical' }}
+          placeholder="Ex: O roteador principal do 3º andar não está conectando, estamos sem internet..."
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
         />
-        <input className="input-field" style={{ flex: 1, minWidth: 220 }}
-          placeholder="Descreva o problema técnico (ex: O roteador principal está sem internet)..."
-          value={descricao} onChange={(e) => setDescricao(e.target.value)} disabled={loading}
-        />
+      </div>
+
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+        <div style={{ flex: '1 1 200px' }}>
+          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
+            Solicitante (Opcional)
+          </label>
+          <input
+            className="input-field"
+            style={{ width: '100%' }}
+            placeholder="Seu nome"
+            value={solicitante}
+            onChange={(e) => setSolicitante(e.target.value)}
+          />
+        </div>
         <button type="submit" className="btn-submit" disabled={loading || !descricao.trim()}>
-          <Send size={14} />{loading ? 'Triando...' : 'Enviar Chamado'}
+          <Send size={14} />{loading ? 'Triando via IA...' : 'Enviar para Triagem IA'}
         </button>
       </div>
     </form>
@@ -214,7 +240,7 @@ function ActivityLog({ activities }) {
     <div className="activity-panel animate-fade-up" style={{ animationDelay: '300ms' }}>
       <div className="activity-header">
         <Activity size={16} style={{ color: 'var(--color-accent)' }} />
-        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Atividade Recente</span>
+        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Atividade Recente da IA</span>
         <span className="kanban-header-count">{activities.length}</span>
       </div>
       {activities.map((a, i) => (
@@ -251,12 +277,12 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const activities = [
-    { text: 'Chamado #0018 criado — Rede / Crítica', color: 'var(--color-red)', time: '2min' },
-    { text: 'Chamado #0016 triado pela IA — 98% confiança', color: 'var(--color-accent)', time: '5min' },
+    { text: 'Chamado #0018 triado · Rede / Crítica', color: 'var(--color-red)', time: '2min' },
+    { text: 'Chamado #0016 analisado por IA · 98% de confiança', color: 'var(--color-accent)', time: '5min' },
     { text: 'Chamado #0015 avançou → Em Atendimento', color: 'var(--color-amber)', time: '12min' },
     { text: 'Chamado #0019 resolvido por Lucas Pereira', color: 'var(--color-green)', time: '28min' },
-    { text: 'Chamado #0020 resolvido — BSOD corrigido', color: 'var(--color-green)', time: '1h' },
-    { text: 'Dados de demonstração carregados', color: 'var(--color-cyan)', time: '2h' },
+    { text: 'Chamado #0020 resolvido · BSOD corrigido', color: 'var(--color-green)', time: '1h' },
+    { text: 'Base de teste de IA carregada com sucesso', color: 'var(--color-cyan)', time: '2h' },
   ];
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
@@ -276,26 +302,39 @@ export default function App() {
     setLoading(true);
     try {
       const r = await axios.post(`${API}/tickets`, { descricao, solicitante });
-      showToast(`✅ Chamado #${r.data.id} — ${r.data.categoria} / ${r.data.prioridade}`);
+      showToast(`✅ Triagem IA #00${r.data.id} · ${r.data.categoria} / ${r.data.prioridade}`);
       fetchData();
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    } catch (e) {
+      console.error(e);
+      showToast('⚠️ Erro de conexão com a API de Triagem.');
+    } finally { setLoading(false); }
   };
 
   const handleAdvance = async (id, status) => {
-    try { await axios.patch(`${API}/tickets/${id}`, { status }); showToast(`🔄 #${id} → ${status}`); fetchData(); }
-    catch (e) { console.error(e); }
+    try {
+      await axios.patch(`${API}/tickets/${id}`, { status });
+      showToast(`⚡ Chamado #00${id} → ${status}`);
+      fetchData();
+    } catch (e) { console.error(e); }
   };
 
   const handleDelete = async (id) => {
-    try { await axios.delete(`${API}/tickets/${id}`); showToast(`🗑️ #${id} removido`); fetchData(); }
-    catch (e) { console.error(e); }
+    try {
+      await axios.delete(`${API}/tickets/${id}`);
+      showToast(`🗑️ Chamado #00${id} excluído`);
+      fetchData();
+    } catch (e) { console.error(e); }
   };
 
   const handleSeed = async () => {
-    try { await axios.post(`${API}/seed`); showToast('⚡ Dados de demonstração carregados'); fetchData(); }
-    catch (e) { console.error(e); }
+    try {
+      await axios.post(`${API}/seed`);
+      showToast('🌱 Base demonstrativa de IA recarregada!');
+      fetchData();
+    } catch (e) { console.error(e); }
   };
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filteredTickets = tickets.filter(t =>
     !searchQuery || t.descricao.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -317,9 +356,9 @@ export default function App() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }} className="animate-fade-up">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--color-green)', boxShadow: '0 0 8px rgba(16,185,129,0.5)' }} />
-              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--color-green)' }}>
-                Sistema Ativo · Motor IA Online
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.5)' }} />
+              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Sparkles size={11} /> AGENTE AUTÔNOMO DE NÍVEL 1 · MOTOR NLP ATIVO
               </span>
             </div>
             <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.2 }}>
@@ -364,9 +403,9 @@ export default function App() {
         </div>
 
         {/* ── MAIN CONTENT ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) clamp(240px, 22vw, 320px)', gap: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
           {/* KANBAN */}
-          <div style={{ display: 'flex', gap: 14, minWidth: 0, overflow: 'auto' }}>
+          <div style={{ flex: '1 1 580px', display: 'flex', gap: 14, minWidth: 0, overflowX: 'auto', paddingBottom: 8 }}>
             <KanbanColumn title="Novos Chamados" icon={AlertTriangle}
               iconColor="#f43f5e" iconBg="rgba(244,63,94,0.1)"
               tickets={novos} onAdvance={handleAdvance} onDelete={handleDelete} />
@@ -379,7 +418,9 @@ export default function App() {
           </div>
 
           {/* ACTIVITY LOG */}
-          <ActivityLog activities={activities} />
+          <div style={{ flex: '1 1 280px', maxWidth: '100%', minWidth: 260 }}>
+            <ActivityLog activities={activities} />
+          </div>
         </div>
       </main>
 

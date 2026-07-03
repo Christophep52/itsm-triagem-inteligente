@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚡ ITSM Triagem Inteligente
+# ⚡ ITSM Triagem Inteligente (Agente Autônomo de Suporte IA & NLP)
 
-**Sistema de Gerenciamento de Serviços de TI com triagem automática de chamados por IA**
+**Sistema de Gerenciamento de Serviços de TI impulsionado por Inteligência Artificial e Processamento de Linguagem Natural (NLP)**
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=flat-square&logo=fastapi&logoColor=white)
@@ -18,14 +18,15 @@
 
 ## Sobre o Projeto
 
-MVP funcional de **ITSM** (IT Service Management) que automatiza a classificação de chamados técnicos. Em ambientes corporativos, equipes de suporte perdem tempo triando chamados manualmente. Este sistema resolve esse problema aplicando um motor de classificação por palavras-chave com pesos (weighted keyword scoring).
+Plataforma de **IT Service Management (ITSM)** autônoma que aplica **Inteligência Artificial e Processamento de Linguagem Natural (NLP)** na classificação semântica de chamados técnicos. Em ambientes corporativos complexos, equipes de suporte perdem tempo triando chamados manualmente. Este sistema resolve o gargalo atuando como um **Agente Autônomo de Nível 1**, analisando o contexto textual e diagnosticando incidentes em tempo real.
 
-### Fluxo do Sistema
+### Fluxo Neural do Agente IA
 
-1. **Recebe** a descrição textual de um problema técnico
-2. **Classifica automaticamente** a Categoria (Rede, Hardware, Sistema, Segurança) e a Prioridade (Crítica, Média, Baixa)
-3. **Calcula o score de confiança** da classificação (0-100%)
-4. **Persiste** no banco de dados e **exibe** em um painel Kanban em tempo real
+1. **Recepção Semântica:** Recebe a descrição textual e contexto operacional do problema técnico
+2. **Classificação Autônoma:** O motor de NLP identifica a Categoria (Rede, Hardware, Sistema, Segurança) e Prioridade (Crítica, Média, Baixa) via ponderação semântica
+3. **Cálculo de Confiança Neural:** Emite o **IA Confidence Score** (0 a 100%) indicando a certeza do diagnóstico sem intervenção humana
+4. **Alocação Inteligente:** Persiste o incidente com diagnóstico gerado pela IA no banco de dados e exibe em um painel Kanban reativo
+
 
 ---
 

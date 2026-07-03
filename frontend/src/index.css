@@ -838,3 +838,56 @@ body {
 .recharts-tooltip-wrapper {
   outline: none;
 }
+
+/* ===========================================
+   RESPONSIVE MEDIA QUERIES
+   =========================================== */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 56px;
+    padding: 12px 0;
+  }
+  main {
+    margin-left: 56px !important;
+    padding: 16px !important;
+  }
+  .stat-value {
+    font-size: 1.6rem;
+  }
+  .form-card {
+    padding: 16px;
+  }
+  .btn-submit {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    justify-content: space-around;
+    border-right: none;
+    border-top: 1px solid var(--color-border);
+    padding: 0 12px;
+  }
+  .sidebar-logo, .sidebar-tooltip {
+    display: none;
+  }
+  main {
+    margin-left: 0 !important;
+    margin-bottom: 60px !important;
+    padding: 12px !important;
+  }
+  .kanban-col {
+    min-width: 240px;
+  }
+}
