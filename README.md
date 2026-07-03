@@ -18,25 +18,25 @@
 
 ## Sobre o Projeto
 
-MVP funcional de **ITSM** (IT Service Management) que automatiza a classificação de chamados técnicos. Em ambientes corporativos, equipes de suporte perdem tempo triando manualmente — este sistema resolve esse gargalo com um **motor de IA baseado em weighted keyword scoring**.
+MVP funcional de **ITSM** (IT Service Management) que automatiza a classificação de chamados técnicos. Em ambientes corporativos, equipes de suporte perdem tempo triando chamados manualmente. Este sistema resolve esse problema aplicando um motor de classificação por palavras-chave com pesos (weighted keyword scoring).
 
 ### Fluxo do Sistema
 
 1. **Recebe** a descrição textual de um problema técnico
-2. **Classifica automaticamente** Categoria (Rede, Hardware, Sistema, Segurança) e Prioridade (Crítica, Média, Baixa)
-3. **Calcula um score de confiança** da classificação (0-100%)
+2. **Classifica automaticamente** a Categoria (Rede, Hardware, Sistema, Segurança) e a Prioridade (Crítica, Média, Baixa)
+3. **Calcula o score de confiança** da classificação (0-100%)
 4. **Persiste** no banco de dados e **exibe** em um painel Kanban em tempo real
 
 ---
 
 ## 📌 Destaque para Recrutadores & Liderança Técnica
 
-Este projeto demonstra competências avançadas de **Engenharia de Software, Padrões de Arquitetura e Foco em Valor de Negócio**:
+Este projeto demonstra a aplicação de práticas modernas de **Engenharia de Software, Padrões de Projeto e Foco em Eficiência Operacional**:
 
 * 💼 **Impacto no Negócio (ROI & MTTR):** Em centrais de serviço corporativas, o tempo de triagem manual consome até 30% do ciclo de vida de um chamado. Esta solução automatiza o encaminhamento inicial, reduzindo o **MTTR (Mean Time to Resolve)** e aumentando o **FCR (First Contact Resolution)**.
-* 🏗️ **Design Patterns & Desacoplamento:** O motor de NLP utiliza o *Strategy Pattern* (`backend/triage.py`), permitindo substituir o algoritmo algorítmico atual por modelos de Machine Learning (BERT, Scikit-Learn) ou LLMs via API (OpenAI/Gemini) **sem alterar uma única linha dos controladores de API ou do frontend**.
-* 🛡️ **Qualidade & Segurança de Tipos:** Código backend fortemente tipado com **Python 3.11+ e Pydantic v2**, garantindo contratos de API invioláveis, aliado a um frontend reativo em **React 19 e TypeScript/Vite**, eliminando erros em tempo de execução.
-* ⚡ **Pronto para Produção:** Configuração completa com CORS dinâmico, UTC com timezone-aware (evitando bugs de fuso horário em servidores globais) e orquestração Docker Compose "zero-config".
+* 🏗️ **Design Patterns & Desacoplamento:** O motor de NLP utiliza o *Strategy Pattern* (`backend/triage.py`), permitindo substituir o algoritmo atual por modelos de Machine Learning (BERT, Scikit-Learn) ou LLMs via API (OpenAI/Gemini) **sem alterar os controladores da API ou o frontend**.
+* 🛡️ **Qualidade & Segurança de Tipos:** Código backend fortemente tipado com **Python 3.11+ e Pydantic v2**, garantindo a validação de contratos da API, aliado a um frontend reativo em **React 19 e TypeScript/Vite**, eliminando erros comuns em tempo de execução.
+* ⚡ **Pronto para Produção:** Configuração completa com CORS dinâmico, datas em UTC com timezone-aware (evitando bugs de fuso horário em servidores em nuvem) e orquestração via Docker Compose.
 
 ---
 
@@ -44,20 +44,20 @@ Este projeto demonstra competências avançadas de **Engenharia de Software, Pad
 
 | Feature | Descrição |
 |---------|-----------|
-| 🤖 **Triagem Automática** | Motor de NLP com weighted keyword scoring — 4 categorias, 3 prioridades |
-| 📊 **Dashboard Kanban** | Colunas Novo → Em Atendimento → Resolvido com drag-like flow |
-| 🎯 **Score de Confiança** | Barra de progresso com percentual de certeza da IA por ticket |
+| 🤖 **Triagem Automática** | Motor de NLP com weighted keyword scoring: 4 categorias e 3 prioridades |
+| 📊 **Dashboard Kanban** | Colunas Novo → Em Atendimento → Resolvido com fluxo contínuo |
+| 🎯 **Score de Confiança** | Barra de progresso indicando o percentual de certeza por ticket |
 | 📈 **Métricas com Trends** | Cards com indicadores de tendência (+/-%) em tempo real |
 | 🔍 **Busca em Tempo Real** | Filtro instantâneo por descrição, solicitante ou categoria |
 | 📋 **Log de Atividade** | Timeline lateral com histórico de ações do sistema |
 | 🎲 **Dados de Demo** | Seed com 12 cenários realistas de suporte corporativo |
-| 🐳 **Containerizado** | Docker Compose para deploy com um único comando |
+| 🐳 **Containerizado** | Docker Compose para deploy de ambiente completo |
 
 ---
 
-## Motor de Triagem — Arquitetura Desacoplada
+## Motor de Triagem e Arquitetura Desacoplada
 
-O motor (`backend/triage.py`) foi **intencionalmente desacoplado** para facilitar evolução:
+O motor (`backend/triage.py`) foi **desacoplado intencionalmente** para facilitar futuras evoluções:
 
 ```python
 resultado = triagem_automatica("O roteador caiu")
