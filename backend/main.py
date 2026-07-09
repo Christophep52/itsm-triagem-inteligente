@@ -65,6 +65,8 @@ class TicketResponse(BaseModel):
     prioridade: str
     status: str
     confianca: float
+    sentimento: str
+    resolucao_sugerida: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -95,6 +97,8 @@ def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)):
         categoria=resultado.categoria,
         prioridade=resultado.prioridade,
         confianca=resultado.confianca,
+        sentimento=resultado.sentimento,
+        resolucao_sugerida=resultado.resolucao_sugerida,
         status="Novo",
     )
     db.add(novo_ticket)
@@ -199,6 +203,8 @@ def popular_dados_demo(db: Session = Depends(get_db)):
             categoria=resultado.categoria,
             prioridade=resultado.prioridade,
             confianca=resultado.confianca,
+            sentimento=resultado.sentimento,
+            resolucao_sugerida=resultado.resolucao_sugerida,
             status="Novo",
         )
         db.add(ticket)

@@ -270,6 +270,16 @@ export default function App() {
                           <div className="ticket-ai-analysis">
                             <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
                             <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                            {ticket.sentimento && (
+                              <div className="ai-details">
+                                Sentimento: <strong className={`sentiment-${ticket.sentimento.toLowerCase().replace('â', 'a')}`}>{ticket.sentimento}</strong>
+                              </div>
+                            )}
+                            {ticket.resolucao_sugerida && (
+                              <div className="ai-rag-suggestion">
+                                <strong>💡 Resolução Sugerida (RAG):</strong> {ticket.resolucao_sugerida}
+                              </div>
+                            )}
                           </div>
                           <div className="ticket-footer">
                             <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
@@ -313,6 +323,16 @@ export default function App() {
                           <div className="ticket-ai-analysis">
                             <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
                             <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                            {ticket.sentimento && (
+                              <div className="ai-details">
+                                Sentimento: <strong className={`sentiment-${ticket.sentimento.toLowerCase().replace('â', 'a')}`}>{ticket.sentimento}</strong>
+                              </div>
+                            )}
+                            {ticket.resolucao_sugerida && (
+                              <div className="ai-rag-suggestion">
+                                <strong>💡 Resolução Sugerida (RAG):</strong> {ticket.resolucao_sugerida}
+                              </div>
+                            )}
                           </div>
                           <div className="ticket-footer">
                             <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
@@ -356,6 +376,16 @@ export default function App() {
                           <div className="ticket-ai-analysis">
                             <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
                             <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                            {ticket.sentimento && (
+                              <div className="ai-details">
+                                Sentimento: <strong className={`sentiment-${ticket.sentimento.toLowerCase().replace('â', 'a')}`}>{ticket.sentimento}</strong>
+                              </div>
+                            )}
+                            {ticket.resolucao_sugerida && (
+                              <div className="ai-rag-suggestion">
+                                <strong>💡 Resolução Sugerida (RAG):</strong> {ticket.resolucao_sugerida}
+                              </div>
+                            )}
                           </div>
                           <div className="ticket-footer">
                             <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>

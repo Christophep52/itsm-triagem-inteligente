@@ -119,6 +119,8 @@ class ResultadoTriagem:
     categoria: str
     prioridade: str
     confianca: float  # 0.0 a 1.0
+    sentimento: str
+    resolucao_sugerida: str
 
 
 def _calcular_scores(texto: str, dicionario: dict) -> dict:
@@ -177,8 +179,35 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
     # Score de confiança final = média das duas classificações
     confianca_final = round((confianca_cat + confianca_pri) / 2, 2)
 
+    # --- Análise de Sentimento (Stub NLP) ---
+    SENTIMENTOS = {
+        "Pânico": ["socorro", "desespero", "caiu tudo", "parou tudo", "pelo amor de deus", "urgente"],
+        "Frustrado": ["de novo", "não aguento mais", "péssimo", "lixo", "revoltante", "porcaria", "inaceitável"],
+    }
+    sentimento = "Neutro"
+    for sent, palavras in SENTIMENTOS.items():
+        if any(p in texto for p in palavras):
+            sentimento = sent
+            break
+            
+    # Boost de prioridade baseado no sentimento
+    if sentimento in ["Pânico", "Frustrado"]:
+        prioridade = "Crítica"
+        confianca_final = min(1.0, confianca_final + 0.2)
+        
+    # --- Resolução Sugerida (RAG / Base de Conhecimento Simulado) ---
+    BASE_CONHECIMENTO = {
+        "Rede": "Sugerido: Reiniciar roteador principal, verificar BGP peering no dashboard NetOps.",
+        "Hardware": "Sugerido: Solicitar substituição no almoxarifado (SLA de hardware 4h).",
+        "Segurança": "Sugerido: Isolar máquina afetada imediatamente e rodar EDR.",
+        "Sistema": "Sugerido: Limpar cache do sistema, verificar logs do Windows Event Viewer e reiniciar serviço."
+    }
+    resolucao = BASE_CONHECIMENTO.get(categoria, "Analisar o chamado detalhadamente.")
+
     return ResultadoTriagem(
         categoria=categoria,
         prioridade=prioridade,
         confianca=confianca_final,
+        sentimento=sentimento,
+        resolucao_sugerida=resolucao,
     )
