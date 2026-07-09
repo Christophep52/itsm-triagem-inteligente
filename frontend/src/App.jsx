@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   LayoutDashboard, TicketPlus, BarChart3, Settings,
-  AlertTriangle, Clock, CheckCircle2, PlusCircle,
+  AlertTriangle, Clock, CheckCircle2,
   Trash2, ArrowRight, Zap, Shield, Wifi, Monitor,
-  RefreshCw, Cpu, Send, User, TrendingUp, Activity,
-  Bell, Search, ChevronDown, Eye, MessageSquare,
-  Timer, Sparkles, ArrowUpRight, Hash,
+  RefreshCw, Cpu, Send, User, Activity,
+  Bell, Search, Sparkles, Hash
 } from 'lucide-react';
 import './index.css';
 
@@ -15,248 +14,6 @@ const CATEGORY_ICONS = { Rede: Wifi, Hardware: Monitor, Sistema: Cpu, Segurança
 const STATUS_FLOW = ['Novo', 'Atendimento', 'Resolvido'];
 const getNextStatus = (s) => { const i = STATUS_FLOW.indexOf(s); return i < STATUS_FLOW.length - 1 ? STATUS_FLOW[i + 1] : null; };
 
-/* ═══════════════════════════════════════════════════
-   SIDEBAR
-   ═══════════════════════════════════════════════════ */
-function Sidebar({ activeView, onViewChange }) {
-  const items = [
-    { icon: LayoutDashboard, label: 'Painel', view: 'dashboard' },
-    { icon: TicketPlus, label: 'Chamados', view: 'tickets' },
-    { icon: BarChart3, label: 'Relatórios', view: 'reports' },
-    { icon: Activity, label: 'Atividade', view: 'activity' },
-  ];
-  return (
-    <aside className="sidebar">
-      <div className="sidebar-logo"><Zap size={20} color="white" /></div>
-      {items.map(({ icon, label, view }) => (
-        <SidebarIcon key={view} icon={icon} label={label} active={activeView === view} onClick={() => onViewChange(view)} />
-      ))}
-      <div style={{ flex: 1 }} />
-      <SidebarIcon icon={Bell} label="Alertas" />
-      <SidebarIcon icon={Settings} label="Configurações" />
-    </aside>
-  );
-}
-
-function SidebarIcon({ icon: Icon, label, active, onClick }) {
-  return (
-    <div className={`sidebar-icon ${active ? 'active' : ''}`} onClick={onClick}>
-      <Icon size={20} />
-      <span className="sidebar-tooltip">{label}</span>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   STAT CARD
-   ═══════════════════════════════════════════════════ */
-function StatCard({ label, value, icon: Icon, color, delay, trend }) {
-  return (
-    <div className={`stat-card animate-fade-up`} style={{ animationDelay: `${delay}ms` }}>
-      <div className={`stat-icon ${color}`}>
-        <Icon size={22} />
-      </div>
-      <div style={{ flex: 1 }}>
-        <div className="stat-value animate-count" style={{ animationDelay: `${delay + 200}ms` }}>{value}</div>
-        <div className="stat-label">{label}</div>
-      </div>
-      {trend && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: '0.65rem', fontWeight: 700,
-          color: trend > 0 ? 'var(--color-green)' : 'var(--color-red)',
-          background: trend > 0 ? 'var(--color-green-soft)' : 'var(--color-red-soft)',
-          padding: '3px 8px', borderRadius: 6 }}>
-          <ArrowUpRight size={10} style={{ transform: trend < 0 ? 'rotate(90deg)' : 'none' }} />
-          {Math.abs(trend)}%
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   TICKET CARD
-   ═══════════════════════════════════════════════════ */
-function TicketCard({ ticket, onAdvance, onDelete, index }) {
-  const prioClass = ticket.prioridade === 'Crítica' ? 'critica' : ticket.prioridade === 'Alta' ? 'alta' : ticket.prioridade === 'Média' ? 'media' : 'baixa';
-  const badgeClass = `badge badge-${prioClass}`;
-  const CatIcon = CATEGORY_ICONS[ticket.categoria] || Cpu;
-  const nextStatus = getNextStatus(ticket.status);
-
-  return (
-    <div className={`ticket ${prioClass} animate-fade-up`} style={{ animationDelay: `${index * 60}ms` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-        <span className={badgeClass}>{ticket.prioridade}</span>
-        <span className="cat-tag"><CatIcon size={11} />{ticket.categoria}</span>
-      </div>
-
-      <p style={{ fontSize: '0.8rem', lineHeight: 1.6, color: 'var(--color-text-primary)', marginBottom: 10, fontWeight: 400 }}>
-        {ticket.descricao}
-      </p>
-
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.68rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
-        <User size={11} /> {ticket.solicitante}
-      </div>
-
-      <div style={{ background: 'rgba(124, 58, 237, 0.08)', border: '1px solid rgba(124, 58, 237, 0.2)', borderRadius: 8, padding: '8px 10px', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.65rem', fontWeight: 700, color: '#a78bfa', marginBottom: 4 }}>
-          <Sparkles size={11} /> DIAGNÓSTICO NEURAL IA
-        </div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--color-text-secondary)' }}>
-          Categoria semântica: <strong style={{ color: 'white' }}>{ticket.categoria}</strong> · Urgência: <strong style={{ color: 'white' }}>{ticket.prioridade}</strong>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.6rem', color: 'var(--color-text-muted)', marginBottom: 4 }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><Sparkles size={9} />Score de Confiança NLP</span>
-          <span style={{ color: 'var(--color-accent)', fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-            {Math.round(ticket.confianca * 100)}%
-          </span>
-        </div>
-        <div className="confidence-track">
-          <div className="confidence-fill" style={{ width: `${ticket.confianca * 100}%` }} />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-        <span style={{ fontSize: '0.6rem', color: 'var(--color-text-ghost)', fontFamily: "'JetBrains Mono', monospace" }}>
-          <Hash size={9} style={{ display: 'inline', verticalAlign: 'middle' }} />{String(ticket.id).padStart(4, '0')}
-        </span>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {nextStatus && (
-            <button onClick={() => onAdvance(ticket.id, nextStatus)} className="action-btn action-advance">
-              <ArrowRight size={10} />{nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'}
-            </button>
-          )}
-          <button onClick={() => onDelete(ticket.id)} className="action-btn action-delete">
-            <Trash2 size={10} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   KANBAN COLUMN
-   ═══════════════════════════════════════════════════ */
-function KanbanColumn({ title, icon: Icon, iconColor, iconBg, tickets, onAdvance, onDelete }) {
-  return (
-    <div className="kanban-col">
-      <div className="kanban-header">
-        <div className="kanban-header-icon" style={{ background: iconBg }}>
-          <Icon size={15} style={{ color: iconColor }} />
-        </div>
-        <span className="kanban-header-title">{title}</span>
-        <span className="kanban-header-count">{tickets.length}</span>
-      </div>
-      <div className="kanban-body">
-        {tickets.map((t, i) => (
-          <TicketCard key={t.id} ticket={t} onAdvance={onAdvance} onDelete={onDelete} index={i} />
-        ))}
-        {tickets.length === 0 && (
-          <div className="empty-state">
-            <div className="empty-state-icon">📭</div>
-            <div className="empty-state-text">Nenhum chamado</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   FORM
-   ═══════════════════════════════════════════════════ */
-function NewTicketForm({ onSubmit, loading }) {
-  const [descricao, setDescricao] = useState('');
-  const [solicitante, setSolicitante] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!descricao.trim()) return;
-    onSubmit(descricao, solicitante || 'Usuário Anônimo');
-    setDescricao('');
-    setSolicitante('');
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="form-card animate-fade-up" style={{ animationDelay: '200ms' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'linear-gradient(135deg, var(--color-accent), #a78bfa)',
-          boxShadow: '0 4px 12px rgba(124, 58, 237, 0.25)',
-        }}>
-          <PlusCircle size={18} color="white" />
-        </div>
-        <div>
-          <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>Abrir Novo Chamado para Triagem IA</div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <Sparkles size={10} /> O motor de NLP avaliará semântica e calculará urgência autonomamente
-          </div>
-        </div>
-      </div>
-
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
-          Descrição do Problema
-        </label>
-        <textarea
-          className="input-field"
-          style={{ width: '100%', height: 80, resize: 'vertical' }}
-          placeholder="Ex: O roteador principal do 3º andar não está conectando, estamos sem internet..."
-          value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
-        />
-      </div>
-
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
-            Solicitante (Opcional)
-          </label>
-          <input
-            className="input-field"
-            style={{ width: '100%' }}
-            placeholder="Seu nome"
-            value={solicitante}
-            onChange={(e) => setSolicitante(e.target.value)}
-          />
-        </div>
-        <button type="submit" className="btn-submit" disabled={loading || !descricao.trim()}>
-          <Send size={14} />{loading ? 'Triando via IA...' : 'Enviar para Triagem IA'}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   ACTIVITY LOG
-   ═══════════════════════════════════════════════════ */
-function ActivityLog({ activities }) {
-  return (
-    <div className="activity-panel animate-fade-up" style={{ animationDelay: '300ms' }}>
-      <div className="activity-header">
-        <Activity size={16} style={{ color: 'var(--color-accent)' }} />
-        <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>Atividade Recente da IA</span>
-        <span className="kanban-header-count">{activities.length}</span>
-      </div>
-      {activities.map((a, i) => (
-        <div key={i} className="activity-item">
-          <div className="activity-dot" style={{ background: a.color }} />
-          <span style={{ color: 'var(--color-text-secondary)', flex: 1 }}>{a.text}</span>
-          <span className="activity-time">{a.time}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   APP
-   ═══════════════════════════════════════════════════ */
 export default function App() {
   const [activeView, setActiveView] = useState('dashboard');
   const [tickets, setTickets] = useState([
@@ -269,20 +26,24 @@ export default function App() {
     { id: 19, descricao: 'Preciso instalar o novo software de videoconferência', solicitante: 'Lucas Pereira', categoria: 'Sistema', prioridade: 'Baixa', status: 'Resolvido', confianca: 0.72 },
     { id: 20, descricao: 'Minha tela azul aparece toda vez que inicio o computador, BSOD', solicitante: 'Diego Rocha', categoria: 'Sistema', prioridade: 'Média', status: 'Resolvido', confianca: 0.88 },
   ]);
+  
   const [stats, setStats] = useState({
     total: 32, novos: 14, em_atendimento: 8, resolvidos: 10, criticos: 6, medios: 12, baixos: 14
   });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const [descricao, setDescricao] = useState('');
+  const [solicitante, setSolicitante] = useState('');
 
   const activities = [
-    { text: 'Chamado #0018 triado · Rede / Crítica', color: 'var(--color-red)', time: '2min' },
-    { text: 'Chamado #0016 analisado por IA · 98% de confiança', color: 'var(--color-accent)', time: '5min' },
-    { text: 'Chamado #0015 avançou → Em Atendimento', color: 'var(--color-amber)', time: '12min' },
-    { text: 'Chamado #0019 resolvido por Lucas Pereira', color: 'var(--color-green)', time: '28min' },
-    { text: 'Chamado #0020 resolvido · BSOD corrigido', color: 'var(--color-green)', time: '1h' },
-    { text: 'Base de teste de IA carregada com sucesso', color: 'var(--color-cyan)', time: '2h' },
+    { text: 'Chamado #0018 triado · Rede / Crítica', color: 'var(--danger)', time: '2min ago' },
+    { text: 'Chamado #0016 analisado por IA · 98% de confiança', color: 'var(--primary)', time: '5min ago' },
+    { text: 'Chamado #0015 avançou → Em Atendimento', color: 'var(--warning)', time: '12min ago' },
+    { text: 'Chamado #0019 resolvido por Lucas Pereira', color: 'var(--success)', time: '28min ago' },
+    { text: 'Chamado #0020 resolvido · BSOD corrigido', color: 'var(--success)', time: '1h ago' },
+    { text: 'Base de teste de IA carregada com sucesso', color: 'var(--accent)', time: '2h ago' },
   ];
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
@@ -298,11 +59,16 @@ export default function App() {
     } catch (e) { console.error(e); }
   }, []);
 
-  const handleCreate = async (descricao, solicitante) => {
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!descricao.trim()) return;
     setLoading(true);
     try {
-      const r = await axios.post(`${API}/tickets`, { descricao, solicitante });
+      const finalSol = solicitante || 'Usuário Anônimo';
+      const r = await axios.post(`${API}/tickets`, { descricao, solicitante: finalSol });
       showToast(`✅ Triagem IA #00${r.data.id} · ${r.data.categoria} / ${r.data.prioridade}`);
+      setDescricao('');
+      setSolicitante('');
       fetchData();
     } catch (e) {
       console.error(e);
@@ -346,80 +112,289 @@ export default function App() {
   const atendimento = filteredTickets.filter(t => t.status === 'Atendimento');
   const resolvidos = filteredTickets.filter(t => t.status === 'Resolvido');
 
+  const getPrioClass = (p) => {
+    if (p === 'Crítica') return 'critica';
+    if (p === 'Alta') return 'alta';
+    if (p === 'Média') return 'media';
+    return 'baixa';
+  };
+
   return (
-    <div className="min-h-screen bg-mesh" style={{ position: 'relative', zIndex: 1 }}>
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+    <div className="layout">
+      {/* SIDEBAR */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <Zap size={28} />
+        </div>
+        <div className={`sidebar-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveView('dashboard')}>
+          <LayoutDashboard size={22} />
+        </div>
+        <div className={`sidebar-item ${activeView === 'tickets' ? 'active' : ''}`} onClick={() => setActiveView('tickets')}>
+          <TicketPlus size={22} />
+        </div>
+        <div className={`sidebar-item ${activeView === 'reports' ? 'active' : ''}`} onClick={() => setActiveView('reports')}>
+          <BarChart3 size={22} />
+        </div>
+        <div className={`sidebar-item ${activeView === 'activity' ? 'active' : ''}`} onClick={() => setActiveView('activity')}>
+          <Activity size={22} />
+        </div>
+        <div style={{ flex: 1 }} />
+        <div className="sidebar-item"><Bell size={22} /></div>
+        <div className="sidebar-item"><Settings size={22} /></div>
+      </aside>
 
-      <main style={{ marginLeft: 68, padding: '24px clamp(16px, 2vw, 32px) 24px clamp(16px, 2vw, 28px)', minWidth: 0 }}>
-
-        {/* ── HEADER ── */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 16 }} className="animate-fade-up">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#a78bfa', boxShadow: '0 0 8px rgba(167,139,250,0.5)' }} />
-              <span style={{ fontSize: '0.62rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <Sparkles size={11} /> AGENTE AUTÔNOMO DE NÍVEL 1 · MOTOR NLP ATIVO
-              </span>
+      <main className="main-content">
+        {/* HEADER */}
+        <header className="header animate-fade-up">
+          <div className="header-title-wrapper">
+            <div className="status-badge">
+              <div className="pulse-dot" />
+              Agente Ativo
             </div>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.2 }}>
-              Triagem Inteligente
-            </h1>
-            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-              Painel de gerenciamento de chamados técnicos com classificação por IA
-            </p>
+            <h1 className="header-title">Triagem Inteligente</h1>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-ghost)' }} />
+          <div className="header-actions">
+            <div className="search-bar">
+              <Search className="search-icon" size={16} />
               <input
-                className="input-field"
-                style={{ width: 220, paddingLeft: 34, fontSize: '0.78rem' }}
+                className="search-input"
                 placeholder="Buscar chamados..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button onClick={fetchData} className="header-btn">
-              <RefreshCw size={14} />Atualizar
+            <button className="btn" onClick={fetchData}>
+              <RefreshCw size={16} /> Atualizar
             </button>
-            <button onClick={handleSeed} className="header-btn header-btn-accent">
-              <Zap size={14} />Demo
+            <button className="btn btn-demo" onClick={handleSeed}>
+              <Zap size={16} fill="currentColor" /> Demo Mode
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* ── STATS ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 18 }}>
-          <StatCard label="Total de Chamados" value={stats.total} icon={BarChart3} color="indigo" delay={0} trend={12} />
-          <StatCard label="Prioridade Crítica" value={stats.criticos} icon={AlertTriangle} color="rose" delay={60} trend={-8} />
-          <StatCard label="Em Atendimento" value={stats.em_atendimento} icon={Timer} color="amber" delay={120} trend={25} />
-          <StatCard label="Resolvidos" value={stats.resolvidos} icon={CheckCircle2} color="emerald" delay={180} trend={18} />
-        </div>
-
-        {/* ── FORM ── */}
-        <div style={{ marginBottom: 18 }}>
-          <NewTicketForm onSubmit={handleCreate} loading={loading} />
-        </div>
-
-        {/* ── MAIN CONTENT ── */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16 }}>
-          {/* KANBAN */}
-          <div style={{ flex: '1 1 580px', display: 'flex', gap: 14, minWidth: 0, overflowX: 'auto', paddingBottom: 8 }}>
-            <KanbanColumn title="Novos Chamados" icon={AlertTriangle}
-              iconColor="#f43f5e" iconBg="rgba(244,63,94,0.1)"
-              tickets={novos} onAdvance={handleAdvance} onDelete={handleDelete} />
-            <KanbanColumn title="Em Atendimento" icon={Clock}
-              iconColor="#f59e0b" iconBg="rgba(245,158,11,0.1)"
-              tickets={atendimento} onAdvance={handleAdvance} onDelete={handleDelete} />
-            <KanbanColumn title="Resolvidos" icon={CheckCircle2}
-              iconColor="#10b981" iconBg="rgba(16,185,129,0.1)"
-              tickets={resolvidos} onAdvance={handleAdvance} onDelete={handleDelete} />
+        <div className="dashboard-container">
+          {/* STAT CARDS */}
+          <div className="stats-grid">
+            <div className="stat-card animate-fade-up" style={{ animationDelay: '100ms' }}>
+              <div className="stat-icon-pill" style={{ background: 'rgba(139, 92, 246, 0.15)', color: 'var(--primary)' }}>
+                <BarChart3 size={24} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">{stats.total}</span>
+                <span className="stat-label">Total de Chamados</span>
+              </div>
+              <div className="trend-badge trend-up">↑ 12%</div>
+            </div>
+            <div className="stat-card animate-fade-up" style={{ animationDelay: '200ms' }}>
+              <div className="stat-icon-pill" style={{ background: 'rgba(239, 68, 68, 0.15)', color: 'var(--danger)' }}>
+                <AlertTriangle size={24} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">{stats.criticos}</span>
+                <span className="stat-label">Prioridade Crítica</span>
+              </div>
+              <div className="trend-badge trend-down">↓ 8%</div>
+            </div>
+            <div className="stat-card animate-fade-up" style={{ animationDelay: '300ms' }}>
+              <div className="stat-icon-pill" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--warning)' }}>
+                <Clock size={24} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">{stats.em_atendimento}</span>
+                <span className="stat-label">Em Atendimento</span>
+              </div>
+              <div className="trend-badge trend-up">↑ 25%</div>
+            </div>
+            <div className="stat-card animate-fade-up" style={{ animationDelay: '400ms' }}>
+              <div className="stat-icon-pill" style={{ background: 'rgba(16, 185, 129, 0.15)', color: 'var(--success)' }}>
+                <CheckCircle2 size={24} />
+              </div>
+              <div className="stat-content">
+                <span className="stat-value">{stats.resolvidos}</span>
+                <span className="stat-label">Resolvidos</span>
+              </div>
+              <div className="trend-badge trend-up">↑ 18%</div>
+            </div>
           </div>
 
-          {/* ACTIVITY LOG */}
-          <div style={{ flex: '1 1 280px', maxWidth: '100%', minWidth: 260 }}>
-            <ActivityLog activities={activities} />
+          <div className="main-grid">
+            <div className="kanban-section">
+              {/* NEW TICKET FORM */}
+              <form className="new-ticket-form animate-fade-up" style={{ animationDelay: '500ms' }} onSubmit={handleCreate}>
+                <div className="form-header">
+                  <Sparkles size={18} /> Novo Chamado (Triagem IA)
+                </div>
+                <div className="form-body">
+                  <textarea
+                    className="textarea-field"
+                    placeholder="Descreva o problema (ex: O roteador principal parou de funcionar...)"
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                  />
+                  <div className="form-footer">
+                    <input
+                      className="input-name"
+                      placeholder="Solicitante (Opcional)"
+                      value={solicitante}
+                      onChange={(e) => setSolicitante(e.target.value)}
+                    />
+                    <button type="submit" className="btn-submit" disabled={!descricao.trim() || loading}>
+                      <Send size={16} /> {loading ? 'Analisando...' : 'Enviar para Triagem'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              {/* KANBAN BOARD */}
+              <div className="kanban-board">
+                {/* NOVOS */}
+                <div className="kanban-col kanban-col-novo animate-fade-up" style={{ animationDelay: '600ms' }}>
+                  <div className="kanban-col-header">
+                    <AlertTriangle size={18} />
+                    <span className="kanban-col-title">Novos</span>
+                    <span className="kanban-col-count">{novos.length}</span>
+                  </div>
+                  <div className="kanban-cards">
+                    {novos.map(ticket => {
+                      const prio = getPrioClass(ticket.prioridade);
+                      const CatIcon = CATEGORY_ICONS[ticket.categoria] || Cpu;
+                      const nextStatus = getNextStatus(ticket.status);
+                      return (
+                        <div key={ticket.id} className={`ticket-card ${prio}`}>
+                          <div className="ticket-header">
+                            <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
+                            <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                          </div>
+                          <p className="ticket-desc">{ticket.descricao}</p>
+                          <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
+                          <div className="ticket-ai-analysis">
+                            <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
+                            <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                          </div>
+                          <div className="ticket-footer">
+                            <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
+                            <div className="ticket-actions">
+                              {nextStatus && (
+                                <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                  {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                </button>
+                              )}
+                              <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* EM ATENDIMENTO */}
+                <div className="kanban-col kanban-col-atendimento animate-fade-up" style={{ animationDelay: '700ms' }}>
+                  <div className="kanban-col-header">
+                    <Clock size={18} />
+                    <span className="kanban-col-title">Atendimento</span>
+                    <span className="kanban-col-count">{atendimento.length}</span>
+                  </div>
+                  <div className="kanban-cards">
+                    {atendimento.map(ticket => {
+                      const prio = getPrioClass(ticket.prioridade);
+                      const CatIcon = CATEGORY_ICONS[ticket.categoria] || Cpu;
+                      const nextStatus = getNextStatus(ticket.status);
+                      return (
+                        <div key={ticket.id} className={`ticket-card ${prio}`}>
+                          <div className="ticket-header">
+                            <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
+                            <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                          </div>
+                          <p className="ticket-desc">{ticket.descricao}</p>
+                          <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
+                          <div className="ticket-ai-analysis">
+                            <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
+                            <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                          </div>
+                          <div className="ticket-footer">
+                            <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
+                            <div className="ticket-actions">
+                              {nextStatus && (
+                                <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                  {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                </button>
+                              )}
+                              <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* RESOLVIDOS */}
+                <div className="kanban-col kanban-col-resolvido animate-fade-up" style={{ animationDelay: '800ms' }}>
+                  <div className="kanban-col-header">
+                    <CheckCircle2 size={18} />
+                    <span className="kanban-col-title">Resolvidos</span>
+                    <span className="kanban-col-count">{resolvidos.length}</span>
+                  </div>
+                  <div className="kanban-cards">
+                    {resolvidos.map(ticket => {
+                      const prio = getPrioClass(ticket.prioridade);
+                      const CatIcon = CATEGORY_ICONS[ticket.categoria] || Cpu;
+                      const nextStatus = getNextStatus(ticket.status);
+                      return (
+                        <div key={ticket.id} className={`ticket-card ${prio}`}>
+                          <div className="ticket-header">
+                            <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
+                            <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                          </div>
+                          <p className="ticket-desc">{ticket.descricao}</p>
+                          <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
+                          <div className="ticket-ai-analysis">
+                            <div className="ai-header"><Sparkles size={12} /> Diagnóstico IA</div>
+                            <div className="ai-details">Score de Confiança: <strong>{Math.round(ticket.confianca * 100)}%</strong></div>
+                          </div>
+                          <div className="ticket-footer">
+                            <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
+                            <div className="ticket-actions">
+                              {nextStatus && (
+                                <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                  {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                </button>
+                              )}
+                              <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI ACTIVITY FEED */}
+            <aside className="activity-feed animate-fade-up" style={{ animationDelay: '900ms' }}>
+              <div className="activity-feed-header">
+                <Activity size={20} color="var(--primary)" /> Activity Feed
+              </div>
+              <div className="timeline">
+                {activities.map((act, i) => (
+                  <div className="timeline-item" key={i}>
+                    <div className="timeline-dot" style={{ background: act.color }} />
+                    <div className="timeline-content">
+                      <span className="timeline-text">{act.text}</span>
+                      <span className="timeline-time">{act.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </aside>
           </div>
         </div>
       </main>
