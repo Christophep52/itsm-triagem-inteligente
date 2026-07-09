@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import axios from 'axios';
 
-const API = 'http://localhost:8000';
+const API = '/api';
 const STATUS_FLOW = ['Novo', 'Atendimento', 'Resolvido'];
 const getNextStatus = (s) => { const i = STATUS_FLOW.indexOf(s); return i < STATUS_FLOW.length - 1 ? STATUS_FLOW[i + 1] : null; };
 

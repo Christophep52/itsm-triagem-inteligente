@@ -87,8 +87,9 @@ export default function Home() {
           <Activity size={22} />
         </div>
         <div style={{ flex: 1 }} />
-        <div className="sidebar-item"><Bell size={22} /></div>
-        <div className="sidebar-item"><Settings size={22} /></div>
+        <div className={`sidebar-item ${activeView === 'settings' ? 'active' : ''}`} onClick={() => setActiveView('settings')} title="Configurações ITIL 4 & IA">
+          <Settings size={22} />
+        </div>
       </aside>
 
       <main className="main-content">
@@ -387,6 +388,106 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <AnimatePresence>
+        {activeView === 'settings' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.75)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              style={{
+                background: 'var(--color-card)', border: '1px solid var(--color-border)',
+                borderRadius: '16px', padding: '28px', width: '560px', maxWidth: '90vw',
+                color: 'var(--color-text)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Settings size={20} color="var(--color-primary)" /> Configurações de IA e ITIL 4
+                </h2>
+                <button
+                  onClick={() => setActiveView('dashboard')}
+                  style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    Limite de Confiança da IA (NLP Heurístico)
+                  </label>
+                  <input type="range" min="60" max="99" defaultValue="85" style={{ width: '100%' }} />
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Chamados abaixo de 85% requerem triagem humana adicional.</span>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    SLA Crítico - Alerta Automático (Minutos)
+                  </label>
+                  <input
+                    type="number"
+                    defaultValue={15}
+                    style={{
+                      width: '100%', padding: '10px 12px', background: 'var(--color-bg)',
+                      border: '1px solid var(--color-border)', borderRadius: '8px', color: '#fff'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '6px' }}>
+                    Canal de Alertas de Incidente Major (Webhook URL)
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="https://hooks.slack.com/services/T000/B000/ITSM_ALERTS"
+                    style={{
+                      width: '100%', padding: '10px 12px', background: 'var(--color-bg)',
+                      border: '1px solid var(--color-border)', borderRadius: '8px', color: '#fff'
+                    }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+                  <input type="checkbox" id="auto-escalate" defaultChecked />
+                  <label htmlFor="auto-escalate" style={{ fontSize: '0.85rem' }}>
+                    Escalonar automaticamente para Nível 2 chamados Críticos não atendidos em 10 min
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
+                <button
+                  className="btn"
+                  onClick={() => setActiveView('dashboard')}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="btn btn-demo"
+                  onClick={() => {
+                    setActiveView('dashboard');
+                    showToast('✅ Configurações de IA & ITIL 4 salvas com sucesso!');
+                  }}
+                >
+                  Salvar Configurações
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {toast && (
