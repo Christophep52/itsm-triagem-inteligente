@@ -149,6 +149,12 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
 
     A interface (input: str, output: ResultadoTriagem) permanece idêntica.
     """
+    # 1. Tentativa de classificação via LLM local (Ollama) caso disponível
+    llm_res = _triagem_por_llm_ollama(descricao)
+    if llm_res:
+        return llm_res
+
+    # 2. Fallback resiliente para o sistema heurístico ponderado
     texto = descricao.lower()
 
     # --- Classificação de Categoria ---
@@ -157,11 +163,10 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
 
     if max_cat_score > 0:
         categoria = max(scores_cat, key=scores_cat.get)
-        # Normaliza confiança (cap em 1.0)
         soma_total = sum(scores_cat.values())
         confianca_cat = scores_cat[categoria] / soma_total if soma_total > 0 else 0
     else:
-        categoria = "Sistema"  # Fallback padrão
+        categoria = "Sistema"
         confianca_cat = 0.3
 
     # --- Classificação de Prioridade ---
@@ -173,10 +178,9 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
         soma_total = sum(scores_pri.values())
         confianca_pri = scores_pri[prioridade] / soma_total if soma_total > 0 else 0
     else:
-        prioridade = "Baixa"  # Fallback padrão
+        prioridade = "Baixa"
         confianca_pri = 0.3
 
-    # Score de confiança final = média das duas classificações
     confianca_final = round((confianca_cat + confianca_pri) / 2, 2)
 
     # --- Análise de Sentimento (Stub NLP) ---
@@ -190,12 +194,10 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
             sentimento = sent
             break
             
-    # Boost de prioridade baseado no sentimento
     if sentimento in ["Pânico", "Frustrado"]:
         prioridade = "Crítica"
         confianca_final = min(1.0, confianca_final + 0.2)
         
-    # --- Resolução Sugerida (RAG / Base de Conhecimento Simulado) ---
     BASE_CONHECIMENTO = {
         "Rede": "Sugerido: Reiniciar roteador principal, verificar BGP peering no dashboard NetOps.",
         "Hardware": "Sugerido: Solicitar substituição no almoxarifado (SLA de hardware 4h).",
@@ -211,3 +213,55 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
         sentimento=sentimento,
         resolucao_sugerida=resolucao,
     )
+
+
+def _triagem_por_llm_ollama(descricao: str):
+    """
+    Tenta classificar via LLM Local (Ollama - ex: llama3 / mistral / qwen2.5) via API HTTP local.
+    Se o servidor Ollama não estiver ativo no localhost:11434 ou falhar (timeout 2s),
+    retorna None para acionar o motor de fallback local instantaneamente.
+    """
+    import json
+    import urllib.request
+    import os
+
+    ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+    model_name = os.getenv("OLLAMA_MODEL", "llama3")
+    
+    prompt = f"""Você é um especialista de ITSM e suporte técnico ITIL 4.
+Analise a seguinte descrição de chamado de suporte e retorne APENAS um JSON válido com os seguintes campos:
+- categoria: uma das opções ["Rede", "Hardware", "Segurança", "Sistema"]
+- prioridade: uma das opções ["Baixa", "Média", "Crítica"]
+- confianca: número float entre 0.0 e 1.0 indicando a certeza da triagem
+- sentimento: uma das opções ["Neutro", "Frustrado", "Pânico"]
+- resolucao_sugerida: breve plano de ação técnico de 1 frase para o analista resolver
+
+Descrição do chamado: "{descricao}"
+JSON:"""
+
+    payload = json.dumps({
+        "model": model_name,
+        "prompt": prompt,
+        "format": "json",
+        "stream": False
+    }).encode("utf-8")
+
+    try:
+        req = urllib.request.Request(
+            ollama_url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=1.8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            out_json = json.loads(data.get("response", "{}"))
+            return ResultadoTriagem(
+                categoria=out_json.get("categoria", "Sistema"),
+                prioridade=out_json.get("prioridade", "Média"),
+                confianca=float(out_json.get("confianca", 0.9)),
+                sentimento=out_json.get("sentimento", "Neutro"),
+                resolucao_sugerida=out_json.get("resolucao_sugerida", "Verificar logs do sistema e agir conforme ITIL 4.")
+            )
+    except Exception:
+        return None
