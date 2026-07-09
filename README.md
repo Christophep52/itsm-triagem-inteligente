@@ -60,8 +60,8 @@ docker compose up --build -d
 ```
 
 Access the applications:
-- **Enterprise ITSM Dashboard**: `http://localhost:3000`
-- **FastAPI Backend Documentation**: `http://localhost:8000/docs`
+- **Enterprise ITSM Dashboard**: `http://localhost:3002`
+- **FastAPI Backend Documentation**: `http://localhost:8002/docs`
 
 ---
 

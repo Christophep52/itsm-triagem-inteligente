@@ -3,7 +3,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8000:8000"
+      - "8002:8000"
     volumes:
       - ./backend:/app
 
@@ -12,8 +12,8 @@ services:
       context: ./frontend-next
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:8002
     depends_on:
       - backend
