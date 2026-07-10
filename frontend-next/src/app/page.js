@@ -27,6 +27,35 @@ export default function Home() {
 
   const [descricao, setDescricao] = useState('');
   const [solicitante, setSolicitante] = useState('');
+  
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState([{ sender: 'bot', text: 'Olá! Sou o Assistente Virtual de TI (Copilot). Como posso ajudar?' }]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  const handleChatSubmit = async (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+    
+    const newMessages = [...chatMessages, { sender: 'user', text: chatInput }];
+    setChatMessages(newMessages);
+    setChatInput('');
+    setIsChatLoading(true);
+    
+    try {
+      const res = await fetch('http://localhost:8001/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: chatInput })
+      });
+      const data = await res.json();
+      setChatMessages([...newMessages, { sender: 'bot', text: data.reply }]);
+    } catch(err) {
+      setChatMessages([...newMessages, { sender: 'bot', text: 'Erro ao conectar ao Copilot.' }]);
+    }
+    setIsChatLoading(false);
+  };
+
 
   useEffect(() => {
     setMounted(true);
@@ -742,6 +771,42 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Floating Chat Widget */}
+      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
+        {isChatOpen ? (
+          <motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} style={{ width: '350px', height: '450px', background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+            <div style={{ padding: '16px', background: 'var(--color-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fff', fontWeight: 600 }}>
+                <Sparkles size={18} /> ITSM Copilot
+              </div>
+              <button onClick={() => setIsChatOpen(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+            <div style={{ flex: 1, padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', background: 'rgba(0,0,0,0.2)' }}>
+              {chatMessages.map((msg, i) => (
+                <div key={i} style={{ alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start', background: msg.sender === 'user' ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)', border: msg.sender === 'user' ? 'none' : '1px solid rgba(255,255,255,0.1)', padding: '10px 14px', borderRadius: '12px', borderBottomRightRadius: msg.sender === 'user' ? 0 : '12px', borderBottomLeftRadius: msg.sender === 'user' ? '12px' : 0, maxWidth: '85%', fontSize: '0.9rem', color: '#fff' }}>
+                  {msg.text}
+                </div>
+              ))}
+              {isChatLoading && (
+                <div style={{ alignSelf: 'flex-start', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '10px 14px', borderRadius: '12px', fontSize: '0.9rem', color: '#94a3b8' }}>
+                  Digitando...
+                </div>
+              )}
+            </div>
+            <form onSubmit={handleChatSubmit} style={{ padding: '12px', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '8px', background: 'var(--color-bg)' }}>
+              <input type="text" value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Pergunte ao Copilot..." style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.2)', color: '#fff', outline: 'none' }} />
+              <button type="submit" disabled={isChatLoading || !chatInput.trim()} style={{ background: 'var(--color-primary)', color: '#fff', border: 'none', borderRadius: '8px', width: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <Send size={16} />
+              </button>
+            </form>
+          </motion.div>
+        ) : (
+          <button onClick={() => setIsChatOpen(true)} style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--color-primary)', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 10px 25px -5px rgba(59,130,246,0.5)' }}>
+            <Sparkles size={28} />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

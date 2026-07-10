@@ -88,9 +88,29 @@ class StatsResponse(BaseModel):
     sla_on_time: int = 0
 
 
+class ChatMessage(BaseModel):
+    message: str
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
+
+@app.post("/api/chat")
+@app.post("/chat")
+def chat_endpoint(chat: ChatMessage):
+    """Responde dúvidas usando NLP básico simulando o Copilot"""
+    msg = chat.message.lower()
+    reply = "Desculpe, sou um bot em treinamento e não entendi sua dúvida. Pode reformular?"
+    if "senha" in msg or "password" in msg:
+        reply = "Para resetar sua senha, acesse o portal de autoatendimento no link: https://portal/reset. Seu gestor precisará aprovar se for para um sistema financeiro."
+    elif "internet" in msg or "wifi" in msg:
+        reply = "Se você está com problemas de internet, tente reiniciar o roteador ou verificar o cabo de rede. Consta aqui que há uma manutenção programada na rede hoje na sua região."
+    elif "impressora" in msg:
+        reply = "A impressora do 3º andar está sem toner. O chamado já foi aberto e a previsão de troca é hoje às 15h."
+    
+    return {"reply": reply}
+
+
 
 @app.post("/tickets", response_model=TicketResponse)
 def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)) -> models.Ticket:
