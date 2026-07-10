@@ -183,17 +183,27 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
 
     confianca_final = round((confianca_cat + confianca_pri) / 2, 2)
 
-    # --- Análise de Sentimento (Stub NLP) ---
-    SENTIMENTOS = {
-        "Pânico": ["socorro", "desespero", "caiu tudo", "parou tudo", "pelo amor de deus", "urgente"],
-        "Frustrado": ["de novo", "não aguento mais", "péssimo", "lixo", "revoltante", "porcaria", "inaceitável"],
-    }
+    # --- Análise de Sentimento (TextBlob) ---
+    from textblob import TextBlob
+    
+    try:
+        tb = TextBlob(descricao)
+        polarity = tb.sentiment.polarity
+        # Tenta traduzir para inglês para análise mais precisa (se não falhar)
+        if polarity == 0.0:
+            try:
+                polarity = tb.translate(to='en').sentiment.polarity
+            except Exception:
+                pass
+    except Exception:
+        polarity = 0.0
+
     sentimento = "Neutro"
-    for sent, palavras in SENTIMENTOS.items():
-        if any(p in texto for p in palavras):
-            sentimento = sent
-            break
-            
+    if polarity <= -0.5:
+        sentimento = "Pânico"
+    elif polarity < 0.0:
+        sentimento = "Frustrado"
+        
     if sentimento in ["Pânico", "Frustrado"]:
         prioridade = "Crítica"
         confianca_final = min(1.0, confianca_final + 0.2)

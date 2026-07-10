@@ -48,7 +48,10 @@ export const useAppStore = create((set, get) => ({
         axios.get(`${API}/stats`),
       ]);
       set({ tickets: ticketsRes.data, stats: statsRes.data });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Erro em fetchData:", e);
+      get().showToast('❌ Erro ao buscar dados do servidor.');
+    }
   },
 
   handleCreate: async (descricao, solicitante) => {
@@ -73,7 +76,10 @@ export const useAppStore = create((set, get) => ({
       await axios.patch(`${API}/tickets/${id}`, { status });
       get().showToast(`⚡ Chamado #00${id} → ${status}`);
       get().fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Erro em handleAdvance:", e); 
+      get().showToast(`❌ Erro ao atualizar o chamado #${id}`);
+    }
   },
 
   handleDelete: async (id) => {
@@ -81,7 +87,10 @@ export const useAppStore = create((set, get) => ({
       await axios.delete(`${API}/tickets/${id}`);
       get().showToast(`🗑️ Chamado #00${id} excluído`);
       get().fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Erro em handleDelete:", e);
+      get().showToast(`❌ Erro ao excluir o chamado #${id}`);
+    }
   },
 
   handleSeed: async () => {
@@ -89,6 +98,9 @@ export const useAppStore = create((set, get) => ({
       await axios.post(`${API}/seed`);
       get().showToast('🌱 Base demonstrativa de IA recarregada!');
       get().fetchData();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Erro em handleSeed:", e);
+      get().showToast('❌ Erro ao recarregar a base demonstrativa.');
+    }
   },
 }));

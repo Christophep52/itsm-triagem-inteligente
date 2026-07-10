@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, Float, Boolean
 from database import Base
 import datetime
 
@@ -25,3 +25,6 @@ class Ticket(Base):
         default=lambda: datetime.datetime.now(datetime.timezone.utc),
         onupdate=lambda: datetime.datetime.now(datetime.timezone.utc),
     )
+    sla_deadline = Column(DateTime, nullable=True)
+    is_sla_violated = Column(Boolean, default=False)
+    assigned_to = Column(String, nullable=True)

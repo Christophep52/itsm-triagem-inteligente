@@ -10,6 +10,7 @@ import {
   Bell, Search, Sparkles, Hash
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const CATEGORY_ICONS = { Rede: Wifi, Hardware: Monitor, Sistema: Cpu, Segurança: Shield };
 
@@ -30,6 +31,20 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
     fetchData();
+
+    const intervalId = setInterval(async () => {
+      try {
+        const res = await fetch('/api/tickets');
+        if (res.ok) {
+          const newTickets = await res.json();
+          useAppStore.setState({ tickets: newTickets });
+        }
+      } catch (error) {
+        console.error('Silent polling failed:', error);
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, [fetchData]);
 
   if (!mounted) return null;
@@ -72,24 +87,24 @@ export default function Home() {
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <Zap size={28} />
+          <Zap size={28} aria-hidden="true" />
         </div>
-        <div className={`sidebar-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveView('dashboard')}>
-          <LayoutDashboard size={22} />
-        </div>
-        <div className={`sidebar-item ${activeView === 'tickets' ? 'active' : ''}`} onClick={() => setActiveView('tickets')}>
-          <TicketPlus size={22} />
-        </div>
-        <div className={`sidebar-item ${activeView === 'reports' ? 'active' : ''}`} onClick={() => setActiveView('reports')}>
-          <BarChart3 size={22} />
-        </div>
-        <div className={`sidebar-item ${activeView === 'activity' ? 'active' : ''}`} onClick={() => setActiveView('activity')}>
-          <Activity size={22} />
-        </div>
+        <button aria-label="Dashboard" className={`sidebar-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveView('dashboard')}>
+          <LayoutDashboard size={22} aria-hidden="true" />
+        </button>
+        <button aria-label="Gestão de Chamados" className={`sidebar-item ${activeView === 'tickets' ? 'active' : ''}`} onClick={() => setActiveView('tickets')}>
+          <TicketPlus size={22} aria-hidden="true" />
+        </button>
+        <button aria-label="Relatórios" className={`sidebar-item ${activeView === 'reports' ? 'active' : ''}`} onClick={() => setActiveView('reports')}>
+          <BarChart3 size={22} aria-hidden="true" />
+        </button>
+        <button aria-label="Atividade" className={`sidebar-item ${activeView === 'activity' ? 'active' : ''}`} onClick={() => setActiveView('activity')}>
+          <Activity size={22} aria-hidden="true" />
+        </button>
         <div style={{ flex: 1 }} />
-        <div className={`sidebar-item ${activeView === 'settings' ? 'active' : ''}`} onClick={() => setActiveView('settings')} title="Configurações ITIL 4 & IA">
-          <Settings size={22} />
-        </div>
+        <button aria-label="Configurações" className={`sidebar-item ${activeView === 'settings' ? 'active' : ''}`} onClick={() => setActiveView('settings')} title="Configurações ITIL 4 & IA">
+          <Settings size={22} aria-hidden="true" />
+        </button>
       </aside>
 
       <main className="main-content">
@@ -223,9 +238,23 @@ export default function Home() {
                               exit={{ opacity: 0, scale: 0.9 }}
                               className={`ticket-card ${prio}`}
                             >
-                              <div className="ticket-header">
+                              <div className="ticket-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                 <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
                                 <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                                {ticket.assigned_to && (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }} title="Agente Atribuído">
+                                    <User size={10} /> {ticket.assigned_to}
+                                  </span>
+                                )}
+                                {ticket.is_sla_violated ? (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }} title="O SLA deste chamado foi violado">
+                                    <AlertTriangle size={10} /> SLA VIOLADO
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', borderRadius: '4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }} title={ticket.sla_deadline ? `Prazo SLA: ${new Date(ticket.sla_deadline).toLocaleString()}` : ''}>
+                                    <Clock size={10} /> SLA OK
+                                  </span>
+                                )}
                               </div>
                               <p className="ticket-desc">{ticket.descricao}</p>
                               <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
@@ -237,12 +266,12 @@ export default function Home() {
                                 <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
                                 <div className="ticket-actions">
                                   {nextStatus && (
-                                    <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
-                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                    <button aria-label={`Avançar chamado ${ticket.id} para ${nextStatus}`} className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} aria-hidden="true" />
                                     </button>
                                   )}
-                                  <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
-                                    <Trash2 size={16} />
+                                  <button aria-label={`Excluir chamado ${ticket.id}`} className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                    <Trash2 size={16} aria-hidden="true" />
                                   </button>
                                 </div>
                               </div>
@@ -274,9 +303,23 @@ export default function Home() {
                               exit={{ opacity: 0, scale: 0.9 }}
                               className={`ticket-card ${prio}`}
                             >
-                              <div className="ticket-header">
+                              <div className="ticket-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                 <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
                                 <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                                {ticket.assigned_to && (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }} title="Agente Atribuído">
+                                    <User size={10} /> {ticket.assigned_to}
+                                  </span>
+                                )}
+                                {ticket.is_sla_violated ? (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }} title="O SLA deste chamado foi violado">
+                                    <AlertTriangle size={10} /> SLA VIOLADO
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', borderRadius: '4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }} title={ticket.sla_deadline ? `Prazo SLA: ${new Date(ticket.sla_deadline).toLocaleString()}` : ''}>
+                                    <Clock size={10} /> SLA OK
+                                  </span>
+                                )}
                               </div>
                               <p className="ticket-desc">{ticket.descricao}</p>
                               <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
@@ -288,12 +331,12 @@ export default function Home() {
                                 <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
                                 <div className="ticket-actions">
                                   {nextStatus && (
-                                    <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
-                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                    <button aria-label={`Avançar chamado ${ticket.id} para ${nextStatus}`} className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} aria-hidden="true" />
                                     </button>
                                   )}
-                                  <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
-                                    <Trash2 size={16} />
+                                  <button aria-label={`Excluir chamado ${ticket.id}`} className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                    <Trash2 size={16} aria-hidden="true" />
                                   </button>
                                 </div>
                               </div>
@@ -325,9 +368,23 @@ export default function Home() {
                               exit={{ opacity: 0, scale: 0.9 }}
                               className={`ticket-card ${prio}`}
                             >
-                              <div className="ticket-header">
+                              <div className="ticket-header" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                                 <span className={`priority-badge ${prio}`}>{ticket.prioridade}</span>
                                 <span className="category-tag"><CatIcon size={14} /> {ticket.categoria}</span>
+                                {ticket.assigned_to && (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '4px' }} title="Agente Atribuído">
+                                    <User size={10} /> {ticket.assigned_to}
+                                  </span>
+                                )}
+                                {ticket.is_sla_violated ? (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '4px', marginLeft: 'auto', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }} title="O SLA deste chamado foi violado">
+                                    <AlertTriangle size={10} /> SLA VIOLADO
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.7rem', padding: '2px 6px', background: 'rgba(255, 255, 255, 0.05)', color: '#94a3b8', borderRadius: '4px', marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }} title={ticket.sla_deadline ? `Prazo SLA: ${new Date(ticket.sla_deadline).toLocaleString()}` : ''}>
+                                    <Clock size={10} /> SLA OK
+                                  </span>
+                                )}
                               </div>
                               <p className="ticket-desc">{ticket.descricao}</p>
                               <div className="ticket-requester"><User size={14} /> {ticket.solicitante}</div>
@@ -339,12 +396,12 @@ export default function Home() {
                                 <span className="ticket-id"><Hash size={12} style={{ display: 'inline', verticalAlign: 'text-bottom' }} />{String(ticket.id).padStart(4, '0')}</span>
                                 <div className="ticket-actions">
                                   {nextStatus && (
-                                    <button className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
-                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} />
+                                    <button aria-label={`Avançar chamado ${ticket.id} para ${nextStatus}`} className="btn-icon btn-advance" onClick={() => handleAdvance(ticket.id, nextStatus)}>
+                                      {nextStatus === 'Atendimento' ? 'Atender' : 'Resolver'} <ArrowRight size={14} aria-hidden="true" />
                                     </button>
                                   )}
-                                  <button className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
-                                    <Trash2 size={16} />
+                                  <button aria-label={`Excluir chamado ${ticket.id}`} className="btn-icon btn-delete" onClick={() => handleDelete(ticket.id)}>
+                                    <Trash2 size={16} aria-hidden="true" />
                                   </button>
                                 </div>
                               </div>
@@ -444,8 +501,8 @@ export default function Home() {
                         </select>
                       </td>
                       <td style={{ padding: '14px 18px' }}>
-                        <button className="btn-icon btn-delete" onClick={() => handleDelete(t.id)}>
-                          <Trash2 size={16} />
+                        <button aria-label={`Excluir chamado ${t.id}`} className="btn-icon btn-delete" onClick={() => handleDelete(t.id)}>
+                          <Trash2 size={16} aria-hidden="true" />
                         </button>
                       </td>
                     </tr>
@@ -478,21 +535,50 @@ export default function Home() {
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>Dentro dos limites ITIL 4</div>
               </div>
             </div>
-            <div style={{ background: 'var(--color-card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>Distribuição de Incidentes por Categoria</h3>
-              <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                <div style={{ flex: 1, height: '24px', background: 'rgba(139, 92, 246, 0.2)', borderRadius: '12px', overflow: 'hidden', display: 'flex' }}>
-                  <div style={{ width: '40%', background: '#8b5cf6' }} title="Rede: 40%" />
-                  <div style={{ width: '30%', background: '#06b6d4' }} title="Sistema: 30%" />
-                  <div style={{ width: '20%', background: '#f59e0b' }} title="Hardware: 20%" />
-                  <div style={{ width: '10%', background: '#ef4444' }} title="Segurança: 10%" />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ background: 'var(--color-card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>Tickets por Categoria</h3>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={stats.por_categoria ? Object.entries(stats.por_categoria).map(([name, value]) => ({ name, value })) : []}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                      >
+                        {(stats.por_categoria ? Object.entries(stats.por_categoria) : []).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444', '#10b981'][index % 5]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '24px', marginTop: '16px', fontSize: '0.85rem', color: '#94a3b8' }}>
-                <span><strong style={{ color: '#8b5cf6' }}>●</strong> Rede (40%)</span>
-                <span><strong style={{ color: '#06b6d4' }}>●</strong> Sistema (30%)</span>
-                <span><strong style={{ color: '#f59e0b' }}>●</strong> Hardware (20%)</span>
-                <span><strong style={{ color: '#ef4444' }}>●</strong> Segurança (10%)</span>
+              
+              <div style={{ background: 'var(--color-card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>SLA Cumprido vs Violado</h3>
+                <div style={{ height: '300px' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={[
+                        { name: 'No Prazo', value: stats.sla_on_time || 0, fill: '#10b981' },
+                        { name: 'SLA Violado', value: stats.sla_breached || 0, fill: '#ef4444' }
+                      ]}
+                    >
+                      <XAxis dataKey="name" stroke="#94a3b8" />
+                      <YAxis stroke="#94a3b8" />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Bar dataKey="value" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
