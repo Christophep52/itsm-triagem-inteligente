@@ -22,7 +22,7 @@ export default function Home() {
     tickets, stats, loading, toast,
     searchQuery, setSearchQuery,
     activities, showToast, fetchData,
-    handleCreate, handleAdvance, handleDelete, handleSeed
+    handleCreate, handleAdvance, handleDelete, handleSeed, handleBulkResolve
   } = useAppStore();
 
   const [descricao, setDescricao] = useState('');
@@ -284,9 +284,35 @@ export default function Home() {
 
                   {/* ATENDIMENTO */}
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="kanban-column">
-                    <div className="kanban-col-header">
-                      <span className="kanban-col-title">Em Atendimento</span>
-                      <span className="kanban-col-count">{atendimento.length}</span>
+                    <div className="kanban-col-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <div>
+                        <span className="kanban-col-title">Em Atendimento</span>
+                        <span className="kanban-col-count">{atendimento.length}</span>
+                      </div>
+                      {atendimento.length > 0 && (
+                        <motion.button 
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={handleBulkResolve} 
+                          title="Resolver Todos"
+                          style={{
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            color: 'var(--color-success)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <CheckCircle2 size={14} /> Resolver Todos
+                        </motion.button>
+                      )}
                     </div>
                     <div className="kanban-cards">
                       <AnimatePresence>

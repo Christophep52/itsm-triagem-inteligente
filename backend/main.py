@@ -212,6 +212,23 @@ def deletar_ticket(ticket_id: int, db: Session = Depends(get_db)) -> dict:
         raise HTTPException(status_code=500, detail=f"Erro ao excluir ticket: {str(e)}")
 
 
+@app.put("/tickets/bulk-resolve")
+@app.put("/api/tickets/bulk-resolve")
+def bulk_resolve_tickets(db: Session = Depends(get_db)) -> dict:
+    """
+    Altera o status de todos os tickets em 'Atendimento' para 'Resolvido'.
+    """
+    try:
+        tickets = db.query(models.Ticket).filter(models.Ticket.status == "Atendimento").all()
+        for t in tickets:
+            t.status = "Resolvido"
+        db.commit()
+        return {"detail": f"{len(tickets)} chamados resolvidos"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao resolver tickets: {str(e)}")
+
+
 @app.get("/stats", response_model=StatsResponse)
 @app.get("/api/stats", response_model=StatsResponse)
 def obter_estatisticas(db: Session = Depends(get_db)) -> StatsResponse:

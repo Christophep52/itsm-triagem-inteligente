@@ -93,6 +93,17 @@ export const useAppStore = create((set, get) => ({
     }
   },
 
+  handleBulkResolve: async () => {
+    try {
+      await axios.put(`${API}/tickets/bulk-resolve`);
+      get().showToast('✅ Todos os chamados em atendimento foram resolvidos!');
+      get().fetchData();
+    } catch (e) {
+      console.error("Erro em handleBulkResolve:", e);
+      get().showToast('❌ Erro ao resolver chamados em massa.');
+    }
+  },
+
   handleSeed: async () => {
     try {
       await axios.post(`${API}/seed`);
