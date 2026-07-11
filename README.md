@@ -46,22 +46,42 @@ graph TD
 
 ---
 
-## 🛠️ Quick Start (Docker Compose)
+## 🐳 Docker Compose Deployment & Management
 
-Launch the complete ITSM enterprise stack with one command:
+The platform is enterprise-ready and packaged with Docker Compose for seamless deployment across development, staging, and production environments.
+
+### 1. Launch Enterprise Stack
+Launch both the **Next.js 16 Frontend** and **FastAPI Backend** with hot-reload volume mounts:
 
 ```bash
-# Clone the repository
+# Clone repository and navigate to project root
 git clone https://github.com/Christophep52/itsm-triagem-inteligente.git
 cd itsm-triagem-inteligente
 
-# Launch full stack (Next.js 16 + FastAPI)
+# Build and start services in detached mode
 docker compose up --build -d
 ```
 
-Access the applications:
-- **Enterprise ITSM Dashboard**: `http://localhost:3002`
-- **FastAPI Backend Documentation**: `http://localhost:8002/docs`
+### 2. Service Endpoints & Ports
+
+| Service | Container Port | Host Port | Endpoint / URL | Description |
+| :--- | :---: | :---: | :--- | :--- |
+| **Enterprise Dashboard** | `3000` | `3002` | `http://localhost:3002` | Next.js 16 App Router UI |
+| **FastAPI Gateway** | `8000` | `8002` | `http://localhost:8002` | REST API Endpoints |
+| **OpenAPI / Swagger Docs** | `8000` | `8002` | `http://localhost:8002/docs` | Interactive API Documentation |
+
+### 3. Container Management Commands
+
+```bash
+# View real-time logs across all services
+docker compose logs -f
+
+# View logs for a specific service (backend or frontend)
+docker compose logs -f backend
+
+# Stop and remove containers, networks, and ephemeral volumes
+docker compose down
+```
 
 ---
 
@@ -71,7 +91,10 @@ Access the applications:
 ```bash
 cd backend
 python -m venv venv
+# Linux/macOS:
 source venv/bin/activate
+# Windows PowerShell:
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
@@ -81,6 +104,31 @@ uvicorn main:app --reload --port 8000
 cd frontend-next
 npm install
 npm run dev
+```
+
+---
+
+## 🧪 Automated Testing Suite (`pytest`)
+
+The FastAPI backend includes an automated unit and E2E testing suite using **Pytest**, verifying NLP ticket triage classification, SLA rules, and REST API controllers (`/tickets`, `/stats`).
+
+### Option A: Running Tests via Docker Compose (Recommended)
+Execute the test suite directly inside the containerized Python runtime without local setup:
+
+```bash
+# Run entire backend test suite
+docker compose run --rm backend pytest -v
+
+# Run specific test file with detailed output
+docker compose run --rm backend pytest tests/test_api.py -v
+```
+
+### Option B: Running Tests Locally (Virtual Environment)
+To run tests directly on your workstation inside the Python environment:
+
+```bash
+cd backend
+pytest -v
 ```
 
 ---

@@ -74,3 +74,28 @@ def test_delete_ticket():
     list_res = client.get("/tickets")
     ids = [t["id"] for t in list_res.json()]
     assert ticket_id not in ids
+
+
+def test_triage_engine_empty_or_whitespace():
+    res = triagem_automatica("   ")
+    assert res.categoria == "Sistema"
+    assert res.prioridade == "Baixa"
+    assert res.sentimento == "Neutro"
+
+
+def test_triage_engine_sentiment_panic():
+    res = triagem_automatica("O sistema caiu tudo e estamos em pânico com prejuízo enorme e emergência")
+    assert res.sentimento == "Pânico"
+    assert res.prioridade == "Crítica"
+
+
+def test_create_ticket_empty_description():
+    response = client.post("/tickets", json={"descricao": "   ", "solicitante": "Ana"})
+    assert response.status_code == 400
+
+
+def test_chat_endpoint_nlp():
+    response = client.post("/api/chat", json={"message": "Preciso redefinir minha senha"})
+    assert response.status_code == 200
+    assert "resetar sua senha" in response.json()["reply"].lower()
+

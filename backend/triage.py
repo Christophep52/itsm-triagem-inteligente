@@ -24,6 +24,7 @@ regex simples e produz um score de confiança entre 0.0 e 1.0.
 
 import re
 from dataclasses import dataclass
+from typing import Optional
 
 # ---------------------------------------------------------------------------
 # Dicionários de palavras-chave ponderadas por categoria
@@ -104,6 +105,25 @@ PRIORIDADES = {
     },
 }
 
+BASE_CONHECIMENTO = {
+    "Rede": "Sugerido: Reiniciar roteador principal, verificar BGP peering no dashboard NetOps.",
+    "Hardware": "Sugerido: Solicitar substituição no almoxarifado (SLA de hardware 4h).",
+    "Segurança": "Sugerido: Isolar máquina afetada imediatamente e rodar EDR.",
+    "Sistema": "Sugerido: Limpar cache do sistema, verificar logs do Windows Event Viewer e reiniciar serviço."
+}
+
+SENTIMENTO_PANICO = [
+    "parou tudo", "desespero", "desesperador", "pânico", "caos", "urgente",
+    "emergência", "caiu tudo", "incêndio", "inaceitável", "absurdo",
+    "empresa inteira", "produção parada", "invasão", "ransomware", "hackeado"
+]
+
+SENTIMENTO_FRUSTRADO = [
+    "frustrado", "raiva", "ódio", "indignado", "péssimo", "horrível",
+    "lixo", "incompetência", "revolta", "não aguento", "impossível",
+    "demora", "atraso", "prejuízo", "de novo", "novamente", "trava toda hora"
+]
+
 
 # Pré-compilação dos regexes para performance (evita compilar a cada requisição)
 for dict_config in (CATEGORIAS, PRIORIDADES):
@@ -112,6 +132,7 @@ for dict_config in (CATEGORIAS, PRIORIDADES):
         for palavra, peso in config["palavras"].items():
             pattern = re.compile(re.escape(palavra), re.IGNORECASE)
             config["padroes"].append((pattern, peso))
+
 
 @dataclass
 class ResultadoTriagem:
@@ -140,22 +161,25 @@ def _calcular_scores(texto: str, dicionario: dict) -> dict:
 def triagem_automatica(descricao: str) -> ResultadoTriagem:
     """
     Executa a triagem automatizada do chamado.
-
-    [FATOR DIDÁTICO]:
-    Para substituir por ML, basta alterar esta função para:
-        1. Vetorizar `descricao` com TF-IDF ou embeddings
-        2. Passar pelo modelo treinado (ex: clf.predict())
-        3. Retornar ResultadoTriagem com a predição
-
-    A interface (input: str, output: ResultadoTriagem) permanece idêntica.
     """
-    # 1. Tentativa de classificação via LLM local (Ollama) caso disponível
-    llm_res = _triagem_por_llm_ollama(descricao)
+    if not descricao or not isinstance(descricao, str) or not descricao.strip():
+        return ResultadoTriagem(
+            categoria="Sistema",
+            prioridade="Baixa",
+            confianca=0.3,
+            sentimento="Neutro",
+            resolucao_sugerida=BASE_CONHECIMENTO["Sistema"]
+        )
+
+    descricao_limpa = descricao.strip()
+
+    # 1. Tentativa de classificação via LLM local (Ollama) caso habilitado
+    llm_res = _triagem_por_llm_ollama(descricao_limpa)
     if llm_res:
         return llm_res
 
-    # 2. Fallback resiliente para o sistema heurístico ponderado
-    texto = descricao.lower()
+    # 2. Motor Heurístico Ponderado de NLP
+    texto = descricao_limpa.lower()
 
     # --- Classificação de Categoria ---
     scores_cat = _calcular_scores(texto, CATEGORIAS)
@@ -164,7 +188,7 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
     if max_cat_score > 0:
         categoria = max(scores_cat, key=scores_cat.get)
         soma_total = sum(scores_cat.values())
-        confianca_cat = scores_cat[categoria] / soma_total if soma_total > 0 else 0
+        confianca_cat = scores_cat[categoria] / soma_total if soma_total > 0 else 0.0
     else:
         categoria = "Sistema"
         confianca_cat = 0.3
@@ -176,44 +200,40 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
     if max_pri_score > 0:
         prioridade = max(scores_pri, key=scores_pri.get)
         soma_total = sum(scores_pri.values())
-        confianca_pri = scores_pri[prioridade] / soma_total if soma_total > 0 else 0
+        confianca_pri = scores_pri[prioridade] / soma_total if soma_total > 0 else 0.0
     else:
         prioridade = "Baixa"
         confianca_pri = 0.3
 
-    confianca_final = round((confianca_cat + confianca_pri) / 2, 2)
+    confianca_final = round((confianca_cat + confianca_pri) / 2.0, 2)
 
-    # --- Análise de Sentimento (TextBlob) ---
-    from textblob import TextBlob
-    
+    # --- Análise de Sentimento Híbrida (Léxico Português + TextBlob local) ---
+    sentimento = "Neutro"
+
+    tem_panico = any(palavra in texto for palavra in SENTIMENTO_PANICO)
+    tem_frustracao = any(palavra in texto for palavra in SENTIMENTO_FRUSTRADO)
+
+    polarity = 0.0
     try:
-        tb = TextBlob(descricao)
-        polarity = tb.sentiment.polarity
-        # Tenta traduzir para inglês para análise mais precisa (se não falhar)
-        if polarity == 0.0:
-            try:
-                polarity = tb.translate(to='en').sentiment.polarity
-            except Exception:
-                pass
+        from textblob import TextBlob
+        tb = TextBlob(descricao_limpa)
+        polarity = float(tb.sentiment.polarity)
     except Exception:
         polarity = 0.0
 
-    sentimento = "Neutro"
-    if polarity <= -0.5:
+    if tem_panico or polarity <= -0.5:
         sentimento = "Pânico"
-    elif polarity < 0.0:
+    elif tem_frustracao or polarity < -0.1:
         sentimento = "Frustrado"
-        
+
+    # Ajuste contextual de prioridade e confiança com base no sentimento
     if sentimento in ["Pânico", "Frustrado"]:
-        prioridade = "Crítica"
-        confianca_final = min(1.0, confianca_final + 0.2)
-        
-    BASE_CONHECIMENTO = {
-        "Rede": "Sugerido: Reiniciar roteador principal, verificar BGP peering no dashboard NetOps.",
-        "Hardware": "Sugerido: Solicitar substituição no almoxarifado (SLA de hardware 4h).",
-        "Segurança": "Sugerido: Isolar máquina afetada imediatamente e rodar EDR.",
-        "Sistema": "Sugerido: Limpar cache do sistema, verificar logs do Windows Event Viewer e reiniciar serviço."
-    }
+        if prioridade == "Baixa":
+            prioridade = "Média"
+        if sentimento == "Pânico":
+            prioridade = "Crítica"
+        confianca_final = min(1.0, round(confianca_final + 0.2, 2))
+
     resolucao = BASE_CONHECIMENTO.get(categoria, "Analisar o chamado detalhadamente.")
 
     return ResultadoTriagem(
@@ -225,19 +245,33 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
     )
 
 
-def _triagem_por_llm_ollama(descricao: str):
+def _triagem_por_llm_ollama(descricao: str) -> Optional[ResultadoTriagem]:
     """
-    Tenta classificar via LLM Local (Ollama - ex: llama3 / mistral / qwen2.5) via API HTTP local.
-    Se o servidor Ollama não estiver ativo no localhost:11434 ou falhar (timeout 2s),
-    retorna None para acionar o motor de fallback local instantaneamente.
+    Tenta classificar via LLM Local (Ollama) via API HTTP local somente quando explicitamente habilitada.
+    Evita bloqueios e timeouts de rede quando o serviço Ollama não estiver rodando.
     """
     import json
     import urllib.request
+    import urllib.parse
+    import socket
     import os
+
+    ollama_enabled = os.getenv("OLLAMA_ENABLED", "false").lower() in ("true", "1", "yes")
+    if not ollama_enabled:
+        return None
 
     ollama_url = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
     model_name = os.getenv("OLLAMA_MODEL", "llama3")
-    
+
+    try:
+        parsed = urllib.parse.urlparse(ollama_url)
+        host = parsed.hostname or "localhost"
+        port = parsed.port or 11434
+        with socket.create_connection((host, port), timeout=0.15):
+            pass
+    except Exception:
+        return None
+
     prompt = f"""Você é um especialista de ITSM e suporte técnico ITIL 4.
 Analise a seguinte descrição de chamado de suporte e retorne APENAS um JSON válido com os seguintes campos:
 - categoria: uma das opções ["Rede", "Hardware", "Segurança", "Sistema"]
@@ -263,15 +297,34 @@ JSON:"""
             headers={"Content-Type": "application/json"},
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=1.8) as resp:
+        with urllib.request.urlopen(req, timeout=2.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
             out_json = json.loads(data.get("response", "{}"))
+
+            categoria = out_json.get("categoria", "Sistema")
+            if categoria not in ["Rede", "Hardware", "Segurança", "Sistema"]:
+                categoria = "Sistema"
+
+            prioridade = out_json.get("prioridade", "Média")
+            if prioridade not in ["Baixa", "Média", "Crítica"]:
+                prioridade = "Média"
+
+            sentimento = out_json.get("sentimento", "Neutro")
+            if sentimento not in ["Neutro", "Frustrado", "Pânico"]:
+                sentimento = "Neutro"
+
+            confianca = float(out_json.get("confianca", 0.9))
+            confianca = max(0.0, min(1.0, confianca))
+
+            resolucao = out_json.get("resolucao_sugerida", BASE_CONHECIMENTO.get(categoria, "Analisar o chamado detalhadamente."))
+
             return ResultadoTriagem(
-                categoria=out_json.get("categoria", "Sistema"),
-                prioridade=out_json.get("prioridade", "Média"),
-                confianca=float(out_json.get("confianca", 0.9)),
-                sentimento=out_json.get("sentimento", "Neutro"),
-                resolucao_sugerida=out_json.get("resolucao_sugerida", "Verificar logs do sistema e agir conforme ITIL 4.")
+                categoria=categoria,
+                prioridade=prioridade,
+                confianca=confianca,
+                sentimento=sentimento,
+                resolucao_sugerida=resolucao
             )
     except Exception:
         return None
+

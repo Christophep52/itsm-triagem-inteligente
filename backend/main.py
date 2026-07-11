@@ -99,15 +99,20 @@ class ChatMessage(BaseModel):
 @app.post("/chat")
 def chat_endpoint(chat: ChatMessage):
     """Responde dúvidas usando NLP básico simulando o Copilot"""
+    if not chat.message or not chat.message.strip():
+        return {"reply": "Por favor, digite sua dúvida para que eu possa ajudar."}
+
     msg = chat.message.lower()
-    reply = "Desculpe, sou um bot em treinamento e não entendi sua dúvida. Pode reformular?"
-    if "senha" in msg or "password" in msg:
+    reply = "Desculpe, sou um bot em treinamento e não entendi sua dúvida. Pode reformular ou abrir um chamado técnico?"
+    if "senha" in msg or "password" in msg or "acesso" in msg:
         reply = "Para resetar sua senha, acesse o portal de autoatendimento no link: https://portal/reset. Seu gestor precisará aprovar se for para um sistema financeiro."
-    elif "internet" in msg or "wifi" in msg:
-        reply = "Se você está com problemas de internet, tente reiniciar o roteador ou verificar o cabo de rede. Consta aqui que há uma manutenção programada na rede hoje na sua região."
-    elif "impressora" in msg:
+    elif "internet" in msg or "wifi" in msg or "wi-fi" in msg or "rede" in msg or "conexão" in msg or "vpn" in msg:
+        reply = "Se você está com problemas de rede ou internet, tente reiniciar o roteador ou verificar o cabo de rede. Consta aqui que há uma manutenção programada na rede hoje na sua região."
+    elif "impressora" in msg or "scanner" in msg or "imprimir" in msg:
         reply = "A impressora do 3º andar está sem toner. O chamado já foi aberto e a previsão de troca é hoje às 15h."
-    
+    elif "lento" in msg or "travando" in msg or "erro" in msg or "sistema" in msg:
+        reply = "Recomendamos limpar o cache e reiniciar o computador. Se o problema persistir, abra um ticket informando o erro exato."
+
     return {"reply": reply}
 
 
@@ -118,8 +123,14 @@ def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)) -> models.
     Cria um novo ticket no sistema e executa a triagem automática para definir
     sua prioridade, categoria e sentimento iniciais, com base na descrição.
     """
+    if not ticket.descricao or not ticket.descricao.strip():
+        raise HTTPException(status_code=400, detail="A descrição do chamado não pode estar vazia.")
+
+    descricao_limpa = ticket.descricao.strip()
+    solicitante_limpo = ticket.solicitante.strip() if ticket.solicitante and ticket.solicitante.strip() else "Usuário Anônimo"
+
     try:
-        resultado = triagem_automatica(ticket.descricao)
+        resultado = triagem_automatica(descricao_limpa)
 
         now = datetime.now(timezone.utc)
         if resultado.prioridade == "Crítica":
@@ -135,8 +146,8 @@ def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)) -> models.
         assigned_to_agent = AGENTS[total_tickets % len(AGENTS)]
 
         novo_ticket = models.Ticket(
-            descricao=ticket.descricao,
-            solicitante=ticket.solicitante,
+            descricao=descricao_limpa,
+            solicitante=solicitante_limpo,
             categoria=resultado.categoria,
             prioridade=resultado.prioridade,
             confianca=resultado.confianca,
@@ -151,6 +162,8 @@ def criar_ticket(ticket: TicketCreate, db: Session = Depends(get_db)) -> models.
         db.commit()
         db.refresh(novo_ticket)
         return novo_ticket
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao criar o ticket: {str(e)}")
@@ -162,9 +175,16 @@ def listar_tickets(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
     Lista os tickets cadastrados no sistema, suportando paginação via skip e limit.
     Retorna os registros em ordem decrescente de criação.
     """
+    if skip < 0:
+        skip = 0
+    if limit < 1:
+        limit = 100
+    elif limit > 1000:
+        limit = 1000
+
     try:
         tickets = db.query(models.Ticket).order_by(models.Ticket.criado_em.desc()).offset(skip).limit(limit).all()
-        
+
         now = datetime.now(timezone.utc)
         dirty = False
         for t in tickets:
@@ -174,8 +194,11 @@ def listar_tickets(skip: int = 0, limit: int = 100, db: Session = Depends(get_db
                     t.is_sla_violated = True
                     dirty = True
         if dirty:
-            db.commit()
-            
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
+
         return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao listar tickets: {str(e)}")
@@ -197,11 +220,11 @@ def atualizar_ticket(
             raise HTTPException(status_code=404, detail="Ticket não encontrado")
 
         if dados.status is not None:
-            ticket.status = dados.status
+            ticket.status = dados.status.strip()
         if dados.prioridade is not None:
-            ticket.prioridade = dados.prioridade
+            ticket.prioridade = dados.prioridade.strip()
         if dados.categoria is not None:
-            ticket.categoria = dados.categoria
+            ticket.categoria = dados.categoria.strip()
 
         db.commit()
         db.refresh(ticket)
@@ -258,17 +281,17 @@ def obter_estatisticas(db: Session = Depends(get_db)) -> StatsResponse:
     """
     try:
         total = db.query(func.count(models.Ticket.id)).scalar() or 0
-        
+
         status_counts = dict(db.query(models.Ticket.status, func.count(models.Ticket.id)).group_by(models.Ticket.status).all())
         novos = status_counts.get("Novo", 0)
         em_atendimento = status_counts.get("Atendimento", 0)
         resolvidos = status_counts.get("Resolvido", 0)
-        
+
         pri_counts = dict(db.query(models.Ticket.prioridade, func.count(models.Ticket.id)).group_by(models.Ticket.prioridade).all())
         criticos = pri_counts.get("Crítica", 0)
         medios = pri_counts.get("Média", 0)
         baixos = pri_counts.get("Baixa", 0)
-        
+
         por_categoria = dict(db.query(models.Ticket.categoria, func.count(models.Ticket.id)).group_by(models.Ticket.categoria).all())
 
         sla_counts = dict(db.query(models.Ticket.is_sla_violated, func.count(models.Ticket.id)).group_by(models.Ticket.is_sla_violated).all())
@@ -292,58 +315,63 @@ def obter_estatisticas(db: Session = Depends(get_db)) -> StatsResponse:
 
 
 @app.post("/seed")
+@app.post("/api/seed")
 def popular_dados_demo(db: Session = Depends(get_db)):
     """Popula o banco com dados de demonstração para showcase do dashboard."""
-    chamados_demo = [
-        ("O roteador principal do 3º andar está sem luz de internet, todos os colaboradores estão sem conexão", "Carlos Silva"),
-        ("Meu mouse parou de funcionar, já troquei a pilha e nada", "Ana Souza"),
-        ("O sistema do RH está travando quando tento gerar folha de pagamento", "Roberto Lima"),
-        ("Recebi um e-mail suspeito pedindo para clicar em um link e atualizar minha senha", "Juliana Costa"),
-        ("A impressora da sala de reuniões não imprime, aparece erro de spooler", "Marcos Oliveira"),
-        ("Internet caiu em toda a empresa, ninguém consegue acessar nada, produção parada", "Fernanda Santos"),
-        ("Preciso instalar o novo software de videoconferência no meu notebook", "Lucas Pereira"),
-        ("O servidor de e-mail está fora do ar desde ontem, urgente", "Patrícia Almeida"),
-        ("Minha tela azul aparece toda vez que inicio o computador, BSOD com erro de driver", "Diego Rocha"),
-        ("O wifi da recepção está muito lento, clientes reclamando da conexão", "Camila Ferreira"),
-        ("Meu notebook está superaquecendo e desligando sozinho", "Thiago Nascimento"),
-        ("Não consigo acessar a VPN para trabalhar remoto, dá erro de autenticação", "Beatriz Mendes"),
-    ]
+    try:
+        chamados_demo = [
+            ("O roteador principal do 3º andar está sem luz de internet, todos os colaboradores estão sem conexão", "Carlos Silva"),
+            ("Meu mouse parou de funcionar, já troquei a pilha e nada", "Ana Souza"),
+            ("O sistema do RH está travando quando tento gerar folha de pagamento", "Roberto Lima"),
+            ("Recebi um e-mail suspeito pedindo para clicar em um link e atualizar minha senha", "Juliana Costa"),
+            ("A impressora da sala de reuniões não imprime, aparece erro de spooler", "Marcos Oliveira"),
+            ("Internet caiu em toda a empresa, ninguém consegue acessar nada, produção parada", "Fernanda Santos"),
+            ("Preciso instalar o novo software de videoconferência no meu notebook", "Lucas Pereira"),
+            ("O servidor de e-mail está fora do ar desde ontem, urgente", "Patrícia Almeida"),
+            ("Minha tela azul aparece toda vez que inicio o computador, BSOD com erro de driver", "Diego Rocha"),
+            ("O wifi da recepção está muito lento, clientes reclamando da conexão", "Camila Ferreira"),
+            ("Meu notebook está superaquecendo e desligando sozinho", "Thiago Nascimento"),
+            ("Não consigo acessar a VPN para trabalhar remoto, dá erro de autenticação", "Beatriz Mendes"),
+        ]
 
-    tickets_criados = []
-    for descricao, solicitante in chamados_demo:
-        resultado = triagem_automatica(descricao)
-        
-        now = datetime.now(timezone.utc)
-        if resultado.prioridade == "Crítica":
-            sla_hours = 4
-        elif resultado.prioridade == "Média":
-            sla_hours = 24
-        else:
-            sla_hours = 48
-            
-        # Simula SLA violado em 1 dos tickets críticos para demonstração
-        if len(tickets_criados) == 0 and resultado.prioridade == "Crítica":
-            sla_deadline = now - timedelta(hours=1)
-        else:
-            sla_deadline = now + timedelta(hours=sla_hours)
+        tickets_criados = []
+        for descricao, solicitante in chamados_demo:
+            resultado = triagem_automatica(descricao)
 
-        AGENTS = ["Agent Smith", "Agent Neo", "Agent Trinity"]
+            now = datetime.now(timezone.utc)
+            if resultado.prioridade == "Crítica":
+                sla_hours = 4
+            elif resultado.prioridade == "Média":
+                sla_hours = 24
+            else:
+                sla_hours = 48
 
-        ticket = models.Ticket(
-            descricao=descricao,
-            solicitante=solicitante,
-            categoria=resultado.categoria,
-            prioridade=resultado.prioridade,
-            confianca=resultado.confianca,
-            sentimento=resultado.sentimento,
-            resolucao_sugerida=resultado.resolucao_sugerida,
-            status="Novo",
-            sla_deadline=sla_deadline,
-            is_sla_violated=False,
-            assigned_to=AGENTS[len(tickets_criados) % len(AGENTS)]
-        )
-        db.add(ticket)
-        tickets_criados.append(descricao[:50])
+            if len(tickets_criados) == 0 and resultado.prioridade == "Crítica":
+                sla_deadline = now - timedelta(hours=1)
+            else:
+                sla_deadline = now + timedelta(hours=sla_hours)
 
-    db.commit()
-    return {"detail": f"{len(tickets_criados)} chamados de demonstração criados"}
+            AGENTS = ["Agent Smith", "Agent Neo", "Agent Trinity"]
+
+            ticket = models.Ticket(
+                descricao=descricao,
+                solicitante=solicitante,
+                categoria=resultado.categoria,
+                prioridade=resultado.prioridade,
+                confianca=resultado.confianca,
+                sentimento=resultado.sentimento,
+                resolucao_sugerida=resultado.resolucao_sugerida,
+                status="Novo",
+                sla_deadline=sla_deadline,
+                is_sla_violated=False,
+                assigned_to=AGENTS[len(tickets_criados) % len(AGENTS)]
+            )
+            db.add(ticket)
+            tickets_criados.append(descricao[:50])
+
+        db.commit()
+        return {"detail": f"{len(tickets_criados)} chamados de demonstração criados"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao popular dados demo: {str(e)}")
+
