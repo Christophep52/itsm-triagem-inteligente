@@ -1,6 +1,12 @@
 # 🤖 ITSM Triagem Inteligente (Next.js 16 + ITIL AI Triage Engine)
 
 <div align="center">
+  <a href="#english">🇺🇸 English</a> | <a href="#português">🇧🇷 Português</a>
+</div>
+
+<br />
+
+<div align="center">
   <img src="dashboard.png" alt="ITSM Triagem Inteligente Dashboard" width="100%" />
 </div>
 
@@ -16,125 +22,41 @@
 
 ---
 
+# <a id="english"></a>🇺🇸 English Documentation
+
 ## 🚀 Overview
+**ITSM Triagem Inteligente** is an enterprise-grade IT Service Management platform designed to automate incident categorization, priority assignment, and SLA breach prediction using natural language processing (NLP) and AI heuristics.
 
-**ITSM Triagem Inteligente** is a state-of-the-art IT Service Management platform designed to automate incident categorization, priority assignment, and SLA breach prediction using natural language processing and AI heuristics.
-
-Engineered with a responsive **Next.js 16 App Router** interface, **Zustand** reactive store, and **Recharts** analytics, it allows Enterprise SRE and IT Service Desk teams to reduce MTTR (Mean Time to Resolution) by up to 65%.
-
----
+Engineered with a responsive **Next.js 16 App Router** interface, **Zustand** reactive state management, and **Recharts** analytics, it empowers SRE and IT Service Desk teams to reduce Mean Time to Resolution (MTTR) by up to 65%.
 
 ## ✨ Key Enterprise Features
-
-- **🧠 Automated NLP Ticket Categorization**: Analyzes incoming incident descriptions to automatically route tickets to the appropriate support level (L1, L2, SRE, Security).
-- **⏱️ Predictive SLA Breach Warning**: AI heuristics compute SLA breach probability based on current queue congestion and ticket complexity.
-- **📈 Real-Time ITIL Metrics Dashboard**: High-fidelity visualization of ticket flow across status pipelines (`Novo`, `Atendimento`, `Resolvido`).
-- **🔍 Fast Command Palette (`Ctrl+K`)**: Rapid search and bulk triage actions for incident commanders.
-- **⚡ Modern Dark Glassmorphism Design**: High-contrast, accessibility-focused interface engineered for 24/7 NOC/SOC operation centers.
-
----
-
-## 🏛️ System Architecture
-
-```mermaid
-graph TD
-    User["Service Desk / Analyst"] -->|HTTP / REST| Next["Next.js 16 App Router (Frontend)"]
-    Next -->|API Requests| API["FastAPI ITSM Gateway (Backend)"]
-    API -->|NLP Classification| AI["AI Triage & NLP Classifier"]
-    API -->|Store & Query| DB[("Relational Database")]
-```
-
----
+- **🧠 Intelligent NLP Triage**: Automatically inspects incident ticket descriptions to assign categories (`Network`, `Hardware`, `Security`, `System`), urgency, and AI confidence scores (`confianca`).
+- **⏱️ Real-Time ITIL 4 SLA Engine**: Dynamic deadline monitoring with automated breach flags (`is_sla_violated`) and real-time countdown timers.
+- **😊 Sentiment Analysis**: Detects user emotional state (`Neutral`, `Frustrated`, `Panic`) to elevate priority for critical emergencies.
+- **📋 Interactive Kanban & Incident Cards**: Drag-and-drop operations, modal inspection, and instant suggested resolutions via RAG knowledge base.
 
 ## 🛠️ Quick Start & Live Demo
 
 ### ⚡ 1-Command Live Integrated Demo (Instant Test)
-Want to test the NLP Triage Engine, ITIL SLA Calculator & Database Persistence immediately?
+Want to test the NLP Triage Engine, ITIL SLA Calculator & Database Persistence immediately without Docker?
 ```bash
 cd backend
 python run_demo_real.py
 ```
 
-## 🐳 Docker Compose Deployment & Management
-
-The platform is enterprise-ready and packaged with Docker Compose for seamless deployment across development, staging, and production environments.
-
-### 1. Launch Enterprise Stack
-Launch both the **Next.js 16 Frontend** and **FastAPI Backend** with hot-reload volume mounts:
-
+### 🐳 Full Enterprise Stack (Docker Compose)
+Deploy the full stack (Next.js 16 Frontend + FastAPI Backend) in containerized mode:
 ```bash
-# Clone repository and navigate to project root
-git clone https://github.com/Christophep52/itsm-triagem-inteligente.git
-cd itsm-triagem-inteligente
-
-# Build and start services in detached mode
 docker compose up --build -d
 ```
 
-### 2. Service Endpoints & Ports
+| Service | Local Endpoint | Description |
+| :--- | :--- | :--- |
+| **ITSM UI (Next.js 16)** | `http://localhost:3000` | Kanban Board, Analytics & Incident Management |
+| **FastAPI Swagger Docs** | `http://localhost:8000/docs` | Interactive OpenAPI 3.0 API Documentation |
 
-| Service | Container Port | Host Port | Endpoint / URL | Description |
-| :--- | :---: | :---: | :--- | :--- |
-| **Enterprise Dashboard** | `3000` | `3002` | `http://localhost:3002` | Next.js 16 App Router UI |
-| **FastAPI Gateway** | `8000` | `8002` | `http://localhost:8002` | REST API Endpoints |
-| **OpenAPI / Swagger Docs** | `8000` | `8002` | `http://localhost:8002/docs` | Interactive API Documentation |
-
-### 3. Container Management Commands
-
-```bash
-# View real-time logs across all services
-docker compose logs -f
-
-# View logs for a specific service (backend or frontend)
-docker compose logs -f backend
-
-# Stop and remove containers, networks, and ephemeral volumes
-docker compose down
-```
-
----
-
-## 💻 Local Development Setup
-
-### 1. Backend (FastAPI)
-```bash
-cd backend
-python -m venv venv
-# Linux/macOS:
-source venv/bin/activate
-# Windows PowerShell:
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
-
-### 2. Frontend (Next.js 16)
-```bash
-cd frontend-next
-npm install
-npm run dev
-```
-
----
-
-## 🧪 Automated Testing Suite (`pytest`)
-
-The FastAPI backend includes an automated unit and E2E testing suite using **Pytest**, verifying NLP ticket triage classification, SLA rules, and REST API controllers (`/tickets`, `/stats`).
-
-### Option A: Running Tests via Docker Compose (Recommended)
-Execute the test suite directly inside the containerized Python runtime without local setup:
-
-```bash
-# Run entire backend test suite
-docker compose run --rm backend pytest -v
-
-# Run specific test file with detailed output
-docker compose run --rm backend pytest tests/test_api.py -v
-```
-
-### Option B: Running Tests Locally (Virtual Environment)
-To run tests directly on your workstation inside the Python environment:
-
+## 🧪 Automated Testing (`pytest`)
+The project includes a comprehensive Pytest test suite (**15/15 tests passing**):
 ```bash
 cd backend
 pytest -v
@@ -142,6 +64,47 @@ pytest -v
 
 ---
 
-## 📄 License
+# <a id="português"></a>🇧🇷 Documentação em Português
 
-Distributed under the MIT License. Designed for ITIL 4 compliant enterprise organizations.
+## 🚀 Visão Geral
+O **ITSM Triagem Inteligente** é uma plataforma corporativa de gerenciamento de serviços de TI projetada para automatizar a categorização de incidentes, atribuição de prioridade e previsão de violação de SLA utilizando Processamento de Linguagem Natural (NLP) e IA.
+
+Construído com frontend **Next.js 16 App Router**, gerenciamento de estado **Zustand** e gráficos **Recharts**, permite às equipes de SRE e Service Desk reduzirem o Tempo Médio de Resolução (MTTR) em até 65%.
+
+## ✨ Principais Funcionalidades Corporativas
+- **🧠 Triagem Inteligente por NLP**: Analisa automaticamente descrições dos chamados para classificar categoria (`Rede`, `Hardware`, `Segurança`, `Sistema`), prioridade e índice de confiança da IA (`confianca`).
+- **⏱️ Motor de SLA em conformidade com ITIL 4**: Monitoramento dinâmico de prazos com sinalizadores automáticos de violação e contadores regressivos em tempo real.
+- **😊 Análise de Sentimento**: Identificação do estado emocional do usuário (`Neutro`, `Frustrado`, `Pânico`) para priorizar chamados urgentes.
+- **📋 Quadro Kanban Interativo**: Inspeção em tempo real, cartões detalhados e sugestão de resolução automática baseada em Base de Conhecimento.
+
+## 🛠️ Como Usar / Demonstração Rápida
+
+### ⚡ Demonstração Real em 1 Comando (Sem Docker)
+Deseja testar o Motor de Triagem NLP, o Cálculo de SLA ITIL e o Banco de Dados instantaneamente?
+```bash
+cd backend
+python run_demo_real.py
+```
+
+### 🐳 Execução Completa via Docker Compose
+Para executar todo o ecossistema (Frontend Next.js 16 + API REST FastAPI):
+```bash
+docker compose up --build -d
+```
+
+| Serviço | Endereço Local | Descrição |
+| :--- | :--- | :--- |
+| **Painel ITSM (Next.js 16)** | `http://localhost:3000` | Quadro Kanban, Gráficos Recharts e Gestão de Incidentes |
+| **Documentação da API (Swagger)** | `http://localhost:8000/docs` | Documentação interativa OpenAPI 3.0 |
+
+## 🧪 Suíte de Testes Automatizados (`pytest`)
+O projeto conta com suíte completa de testes unitários e de integração (**100% de aprovação - 15/15 testes**):
+```bash
+cd backend
+pytest -v
+```
+
+---
+
+## 📄 Licença / License
+Distribuído sob a Licença MIT. Projetado para ambientes corporativos de Service Desk e SRE.
