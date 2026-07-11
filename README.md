@@ -46,6 +46,15 @@ graph TD
 
 ---
 
+## 🛠️ Quick Start & Live Demo
+
+### ⚡ 1-Command Live Integrated Demo (Instant Test)
+Want to test the NLP Triage Engine, ITIL SLA Calculator & Database Persistence immediately?
+```bash
+cd backend
+python run_demo_real.py
+```
+
 ## 🐳 Docker Compose Deployment & Management
 
 The platform is enterprise-ready and packaged with Docker Compose for seamless deployment across development, staging, and production environments.
