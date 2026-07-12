@@ -1,4 +1,3 @@
-import pytest
 from fastapi.testclient import TestClient
 from main import app
 from triage import triagem_automatica
@@ -7,7 +6,9 @@ client = TestClient(app)
 
 
 def test_triage_engine_network_critical():
-    res = triagem_automatica("O servidor caiu e estamos com a empresa inteira fora do ar sem internet")
+    res = triagem_automatica(
+        "O servidor caiu e estamos com a empresa inteira fora do ar sem internet"
+    )
     assert res.categoria == "Rede"
     assert res.prioridade == "Crítica"
     assert res.confianca > 0.5
@@ -21,7 +22,7 @@ def test_triage_engine_hardware():
 def test_create_ticket_api():
     payload = {
         "descricao": "Servidor principal sem acesso, firewall bloqueando tudo",
-        "solicitante": "Engenheiro de Redes"
+        "solicitante": "Engenheiro de Redes",
     }
     response = client.post("/tickets", json=payload)
     assert response.status_code == 200
@@ -84,7 +85,9 @@ def test_triage_engine_empty_or_whitespace():
 
 
 def test_triage_engine_sentiment_panic():
-    res = triagem_automatica("O sistema caiu tudo e estamos em pânico com prejuízo enorme e emergência")
+    res = triagem_automatica(
+        "O sistema caiu tudo e estamos em pânico com prejuízo enorme e emergência"
+    )
     assert res.sentimento == "Pânico"
     assert res.prioridade == "Crítica"
 
@@ -95,7 +98,8 @@ def test_create_ticket_empty_description():
 
 
 def test_chat_endpoint_nlp():
-    response = client.post("/api/chat", json={"message": "Preciso redefinir minha senha"})
+    response = client.post(
+        "/api/chat", json={"message": "Preciso redefinir minha senha"}
+    )
     assert response.status_code == 200
     assert "resetar sua senha" in response.json()["reply"].lower()
-

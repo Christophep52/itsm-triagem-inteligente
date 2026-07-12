@@ -1,13 +1,16 @@
-import './globals.css';
-import { Inter, JetBrains_Mono } from 'next/font/google';
-import { ThemeProvider } from 'next-themes';
+import "./globals.css";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+});
 
 export const metadata = {
-  title: 'ITSM Triagem Inteligente',
-  description: 'AI-powered IT Service Management Triage System',
+  title: "ITSM Triagem Inteligente",
+  description: "AI-powered IT Service Management Triage System",
 };
 
 export default function RootLayout({ children }) {

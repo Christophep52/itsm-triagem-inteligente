@@ -34,44 +34,119 @@ from typing import Optional
 CATEGORIAS = {
     "Rede": {
         "palavras": {
-            "roteador": 3, "internet": 3, "wifi": 3, "wi-fi": 3,
-            "conexão": 2, "ping": 3, "cabo": 2, "switch": 3,
-            "firewall": 3, "dns": 3, "ip": 2, "vpn": 3,
-            "rede": 3, "banda": 2, "latência": 3, "pacote": 2,
-            "proxy": 3, "gateway": 3, "dhcp": 3, "ethernet": 2,
-            "fibra": 2, "modem": 3, "access point": 3, "ssid": 3,
-            "desconectando": 2, "caiu": 2, "sem sinal": 3,
+            "roteador": 3,
+            "internet": 3,
+            "wifi": 3,
+            "wi-fi": 3,
+            "conexão": 2,
+            "ping": 3,
+            "cabo": 2,
+            "switch": 3,
+            "firewall": 3,
+            "dns": 3,
+            "ip": 2,
+            "vpn": 3,
+            "rede": 3,
+            "banda": 2,
+            "latência": 3,
+            "pacote": 2,
+            "proxy": 3,
+            "gateway": 3,
+            "dhcp": 3,
+            "ethernet": 2,
+            "fibra": 2,
+            "modem": 3,
+            "access point": 3,
+            "ssid": 3,
+            "desconectando": 2,
+            "caiu": 2,
+            "sem sinal": 3,
         }
     },
     "Hardware": {
         "palavras": {
-            "monitor": 3, "mouse": 3, "teclado": 3, "tela": 2,
-            "memória": 2, "hd": 3, "disco": 2, "bateria": 3,
-            "impressora": 3, "scanner": 3, "placa": 2, "fonte": 3,
-            "cooler": 3, "ventilador": 2, "aquecendo": 2, "superaquecendo": 3,
-            "queimou": 3, "quebrou": 3, "não liga": 3, "sem luz": 2,
-            "notebook": 2, "desktop": 2, "headset": 2, "usb": 2,
-            "ssd": 3, "ram": 3, "processador": 3, "cpu": 3, "gpu": 3,
+            "monitor": 3,
+            "mouse": 3,
+            "teclado": 3,
+            "tela": 2,
+            "memória": 2,
+            "hd": 3,
+            "disco": 2,
+            "bateria": 3,
+            "impressora": 3,
+            "scanner": 3,
+            "placa": 2,
+            "fonte": 3,
+            "cooler": 3,
+            "ventilador": 2,
+            "aquecendo": 2,
+            "superaquecendo": 3,
+            "queimou": 3,
+            "quebrou": 3,
+            "não liga": 3,
+            "sem luz": 2,
+            "notebook": 2,
+            "desktop": 2,
+            "headset": 2,
+            "usb": 2,
+            "ssd": 3,
+            "ram": 3,
+            "processador": 3,
+            "cpu": 3,
+            "gpu": 3,
         }
     },
     "Segurança": {
         "palavras": {
-            "vírus": 3, "malware": 3, "phishing": 3, "ransomware": 3,
-            "invasão": 3, "hackeado": 3, "senha": 2, "acesso negado": 2,
-            "bloqueado": 2, "criptografado": 3, "vazamento": 3,
-            "spam": 2, "trojan": 3, "antivírus": 3, "suspeito": 2,
-            "vulnerabilidade": 3, "ataque": 3, "brute force": 3,
+            "vírus": 3,
+            "malware": 3,
+            "phishing": 3,
+            "ransomware": 3,
+            "invasão": 3,
+            "hackeado": 3,
+            "senha": 2,
+            "acesso negado": 2,
+            "bloqueado": 2,
+            "criptografado": 3,
+            "vazamento": 3,
+            "spam": 2,
+            "trojan": 3,
+            "antivírus": 3,
+            "suspeito": 2,
+            "vulnerabilidade": 3,
+            "ataque": 3,
+            "brute force": 3,
         }
     },
     "Sistema": {
         "palavras": {
-            "windows": 2, "linux": 2, "sistema": 2, "atualização": 2,
-            "software": 2, "programa": 2, "aplicativo": 2, "erro": 1,
-            "travando": 2, "congelou": 2, "reiniciando": 2,
-            "tela azul": 3, "bsod": 3, "boot": 3, "inicialização": 2,
-            "driver": 3, "permissão": 2, "instalar": 2, "desinstalar": 2,
-            "licença": 2, "office": 2, "e-mail": 2, "outlook": 2,
-            "lento": 1, "performance": 2, "backup": 2, "restaurar": 2,
+            "windows": 2,
+            "linux": 2,
+            "sistema": 2,
+            "atualização": 2,
+            "software": 2,
+            "programa": 2,
+            "aplicativo": 2,
+            "erro": 1,
+            "travando": 2,
+            "congelou": 2,
+            "reiniciando": 2,
+            "tela azul": 3,
+            "bsod": 3,
+            "boot": 3,
+            "inicialização": 2,
+            "driver": 3,
+            "permissão": 2,
+            "instalar": 2,
+            "desinstalar": 2,
+            "licença": 2,
+            "office": 2,
+            "e-mail": 2,
+            "outlook": 2,
+            "lento": 1,
+            "performance": 2,
+            "backup": 2,
+            "restaurar": 2,
         }
     },
 }
@@ -79,28 +154,60 @@ CATEGORIAS = {
 PRIORIDADES = {
     "Crítica": {
         "palavras": {
-            "parou tudo": 4, "urgente": 4, "crítico": 4, "emergência": 4,
-            "não liga": 3, "sem luz": 3, "caiu tudo": 4, "geral": 2,
-            "todos afetados": 4, "empresa inteira": 4, "produção parada": 4,
-            "servidor caiu": 4, "ransomware": 4, "invasão": 4,
-            "indisponível": 3, "fora do ar": 4, "sem acesso": 3,
-            "queimou": 3, "incêndio": 4, "data center": 3,
+            "parou tudo": 4,
+            "urgente": 4,
+            "crítico": 4,
+            "emergência": 4,
+            "não liga": 3,
+            "sem luz": 3,
+            "caiu tudo": 4,
+            "geral": 2,
+            "todos afetados": 4,
+            "empresa inteira": 4,
+            "produção parada": 4,
+            "servidor caiu": 4,
+            "ransomware": 4,
+            "invasão": 4,
+            "indisponível": 3,
+            "fora do ar": 4,
+            "sem acesso": 3,
+            "queimou": 3,
+            "incêndio": 4,
+            "data center": 3,
         }
     },
     "Média": {
         "palavras": {
-            "lento": 3, "travando": 3, "demorando": 3, "erro": 2,
-            "intermitente": 3, "às vezes": 2, "instável": 3,
-            "reiniciando sozinho": 3, "falha": 2, "problema": 1,
-            "não funciona": 2, "defeito": 2, "oscilando": 3,
+            "lento": 3,
+            "travando": 3,
+            "demorando": 3,
+            "erro": 2,
+            "intermitente": 3,
+            "às vezes": 2,
+            "instável": 3,
+            "reiniciando sozinho": 3,
+            "falha": 2,
+            "problema": 1,
+            "não funciona": 2,
+            "defeito": 2,
+            "oscilando": 3,
         }
     },
     "Baixa": {
         "palavras": {
-            "dúvida": 3, "como faço": 3, "configurar": 2, "ajuda": 2,
-            "instalar": 2, "solicitar": 2, "novo usuário": 3,
-            "trocar": 2, "atualizar": 1, "manutenção": 2,
-            "preventiva": 3, "sugestão": 3, "melhoria": 3,
+            "dúvida": 3,
+            "como faço": 3,
+            "configurar": 2,
+            "ajuda": 2,
+            "instalar": 2,
+            "solicitar": 2,
+            "novo usuário": 3,
+            "trocar": 2,
+            "atualizar": 1,
+            "manutenção": 2,
+            "preventiva": 3,
+            "sugestão": 3,
+            "melhoria": 3,
         }
     },
 }
@@ -109,19 +216,46 @@ BASE_CONHECIMENTO = {
     "Rede": "Sugerido: Reiniciar roteador principal, verificar BGP peering no dashboard NetOps.",
     "Hardware": "Sugerido: Solicitar substituição no almoxarifado (SLA de hardware 4h).",
     "Segurança": "Sugerido: Isolar máquina afetada imediatamente e rodar EDR.",
-    "Sistema": "Sugerido: Limpar cache do sistema, verificar logs do Windows Event Viewer e reiniciar serviço."
+    "Sistema": "Sugerido: Limpar cache do sistema, verificar logs do Windows Event Viewer e reiniciar serviço.",
 }
 
 SENTIMENTO_PANICO = [
-    "parou tudo", "desespero", "desesperador", "pânico", "caos", "urgente",
-    "emergência", "caiu tudo", "incêndio", "inaceitável", "absurdo",
-    "empresa inteira", "produção parada", "invasão", "ransomware", "hackeado"
+    "parou tudo",
+    "desespero",
+    "desesperador",
+    "pânico",
+    "caos",
+    "urgente",
+    "emergência",
+    "caiu tudo",
+    "incêndio",
+    "inaceitável",
+    "absurdo",
+    "empresa inteira",
+    "produção parada",
+    "invasão",
+    "ransomware",
+    "hackeado",
 ]
 
 SENTIMENTO_FRUSTRADO = [
-    "frustrado", "raiva", "ódio", "indignado", "péssimo", "horrível",
-    "lixo", "incompetência", "revolta", "não aguento", "impossível",
-    "demora", "atraso", "prejuízo", "de novo", "novamente", "trava toda hora"
+    "frustrado",
+    "raiva",
+    "ódio",
+    "indignado",
+    "péssimo",
+    "horrível",
+    "lixo",
+    "incompetência",
+    "revolta",
+    "não aguento",
+    "impossível",
+    "demora",
+    "atraso",
+    "prejuízo",
+    "de novo",
+    "novamente",
+    "trava toda hora",
 ]
 
 
@@ -137,6 +271,7 @@ for dict_config in (CATEGORIAS, PRIORIDADES):
 @dataclass
 class ResultadoTriagem:
     """Resultado estruturado da triagem automática."""
+
     categoria: str
     prioridade: str
     confianca: float  # 0.0 a 1.0
@@ -168,7 +303,7 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
             prioridade="Baixa",
             confianca=0.3,
             sentimento="Neutro",
-            resolucao_sugerida=BASE_CONHECIMENTO["Sistema"]
+            resolucao_sugerida=BASE_CONHECIMENTO["Sistema"],
         )
 
     descricao_limpa = descricao.strip()
@@ -216,6 +351,7 @@ def triagem_automatica(descricao: str) -> ResultadoTriagem:
     polarity = 0.0
     try:
         from textblob import TextBlob
+
         tb = TextBlob(descricao_limpa)
         polarity = float(tb.sentiment.polarity)
     except Exception:
@@ -256,7 +392,11 @@ def _triagem_por_llm_ollama(descricao: str) -> Optional[ResultadoTriagem]:
     import socket
     import os
 
-    ollama_enabled = os.getenv("OLLAMA_ENABLED", "false").lower() in ("true", "1", "yes")
+    ollama_enabled = os.getenv("OLLAMA_ENABLED", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     if not ollama_enabled:
         return None
 
@@ -283,19 +423,16 @@ Analise a seguinte descrição de chamado de suporte e retorne APENAS um JSON v�
 Descrição do chamado: "{descricao}"
 JSON:"""
 
-    payload = json.dumps({
-        "model": model_name,
-        "prompt": prompt,
-        "format": "json",
-        "stream": False
-    }).encode("utf-8")
+    payload = json.dumps(
+        {"model": model_name, "prompt": prompt, "format": "json", "stream": False}
+    ).encode("utf-8")
 
     try:
         req = urllib.request.Request(
             ollama_url,
             data=payload,
             headers={"Content-Type": "application/json"},
-            method="POST"
+            method="POST",
         )
         with urllib.request.urlopen(req, timeout=2.0) as resp:
             data = json.loads(resp.read().decode("utf-8"))
@@ -316,15 +453,17 @@ JSON:"""
             confianca = float(out_json.get("confianca", 0.9))
             confianca = max(0.0, min(1.0, confianca))
 
-            resolucao = out_json.get("resolucao_sugerida", BASE_CONHECIMENTO.get(categoria, "Analisar o chamado detalhadamente."))
+            resolucao = out_json.get(
+                "resolucao_sugerida",
+                BASE_CONHECIMENTO.get(categoria, "Analisar o chamado detalhadamente."),
+            )
 
             return ResultadoTriagem(
                 categoria=categoria,
                 prioridade=prioridade,
                 confianca=confianca,
                 sentimento=sentimento,
-                resolucao_sugerida=resolucao
+                resolucao_sugerida=resolucao,
             )
     except Exception:
         return None
-

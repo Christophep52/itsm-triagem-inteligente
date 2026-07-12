@@ -15,14 +15,18 @@
   --color-border-hover: rgba(255, 255, 255, 0.12);
   --color-text: #e4e4e7;
   --color-text-muted: #71717a;
-  
+
   --priority-critica: var(--color-danger);
   --priority-alta: #f97316;
   --priority-media: var(--color-warning);
   --priority-baixa: var(--color-success);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 body {
   font-family: var(--font-inter), sans-serif;
@@ -31,7 +35,7 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: 
+  background-image:
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -39,14 +43,26 @@ body {
 
 /* Animations */
 @keyframes fadeUp {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
 }
 
 .animate-fade-up {
@@ -106,7 +122,7 @@ body {
 }
 
 .sidebar-item.active::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -8px;
   top: 50%;
@@ -453,9 +469,18 @@ body {
   border-bottom: 2px solid;
 }
 
-.kanban-col-novo .kanban-col-header { border-color: var(--color-danger); color: var(--color-danger); }
-.kanban-col-atendimento .kanban-col-header { border-color: var(--color-warning); color: var(--color-warning); }
-.kanban-col-resolvido .kanban-col-header { border-color: var(--color-success); color: var(--color-success); }
+.kanban-col-novo .kanban-col-header {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+.kanban-col-atendimento .kanban-col-header {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+.kanban-col-resolvido .kanban-col-header {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
 
 .kanban-col-title {
   font-weight: 700;
@@ -500,7 +525,7 @@ body {
 }
 
 .ticket-card::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -1px;
   top: 16px;
@@ -509,10 +534,18 @@ body {
   border-radius: 0 4px 4px 0;
 }
 
-.ticket-card.critica::before { background: var(--priority-critica); }
-.ticket-card.alta::before { background: var(--priority-alta); }
-.ticket-card.media::before { background: var(--priority-media); }
-.ticket-card.baixa::before { background: var(--priority-baixa); }
+.ticket-card.critica::before {
+  background: var(--priority-critica);
+}
+.ticket-card.alta::before {
+  background: var(--priority-alta);
+}
+.ticket-card.media::before {
+  background: var(--priority-media);
+}
+.ticket-card.baixa::before {
+  background: var(--priority-baixa);
+}
 
 .ticket-header {
   display: flex;
@@ -529,10 +562,22 @@ body {
   letter-spacing: 0.05em;
 }
 
-.priority-badge.critica { background: rgba(239, 68, 68, 0.15); color: var(--color-danger); }
-.priority-badge.alta { background: rgba(249, 115, 22, 0.15); color: var(--priority-alta); }
-.priority-badge.media { background: rgba(245, 158, 11, 0.15); color: var(--color-warning); }
-.priority-badge.baixa { background: rgba(16, 185, 129, 0.15); color: var(--color-success); }
+.priority-badge.critica {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-danger);
+}
+.priority-badge.alta {
+  background: rgba(249, 115, 22, 0.15);
+  color: var(--priority-alta);
+}
+.priority-badge.media {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--color-warning);
+}
+.priority-badge.baixa {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-success);
+}
 
 .category-tag {
   display: flex;
@@ -669,7 +714,7 @@ body {
 }
 
 .timeline::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 10px;
@@ -721,7 +766,7 @@ body {
   color: var(--color-text);
   padding: 16px 24px;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   z-index: 1000;
   font-weight: 500;
   font-size: 0.9rem;
