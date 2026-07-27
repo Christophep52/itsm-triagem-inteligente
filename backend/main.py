@@ -6,25 +6,68 @@ chamados técnicos de suporte. A triagem é feita automaticamente pelo
 motor de palavras-chave ponderadas (vide triage.py).
 """
 
-from fastapi import FastAPI, Depends, HTTPException
+import os
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timedelta, timezone
 from fastapi.middleware.cors import CORSMiddleware
+import structlog
 
 import models
 from database import engine, get_db
 from triage import triagem_automatica
 
-models.Base.metadata.create_all(bind=engine)
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer()
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+logger = structlog.get_logger()
 
 app = FastAPI(
     title="ITSM Triagem Inteligente",
     description="API de triagem automática de chamados técnicos",
     version="1.0.0",
 )
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error("unhandled_exception", error=str(exc), path=request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "type": "about:blank",
+            "title": "Internal Server Error",
+            "status": 500,
+            "detail": "An unexpected error occurred.",
+            "instance": request.url.path
+        }
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    logger.warning("http_exception", status=exc.status_code, detail=exc.detail, path=request.url.path)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "type": "about:blank",
+            "title": "HTTP Error",
+            "status": exc.status_code,
+            "detail": exc.detail,
+            "instance": request.url.path
+        }
+    )
 
 app.add_middleware(
     CORSMiddleware,

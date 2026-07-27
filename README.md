@@ -41,6 +41,9 @@ Engineered with a responsive **Next.js 16 App Router** interface, **Zustand** re
 Want to test the NLP Triage Engine, ITIL SLA Calculator & Database Persistence immediately without Docker?
 ```bash
 cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate | Linux/Mac: source venv/bin/activate
+pip install -r requirements.txt
 python run_demo_real.py
 ```
 
@@ -59,6 +62,7 @@ docker compose up --build -d
 The project includes a comprehensive Pytest test suite (**15/15 tests passing**):
 ```bash
 cd backend
+# Ensure virtual environment is activated and dependencies are installed
 pytest -v
 ```
 
@@ -83,6 +87,9 @@ Construído com frontend **Next.js 16 App Router**, gerenciamento de estado **Zu
 Deseja testar o Motor de Triagem NLP, o Cálculo de SLA ITIL e o Banco de Dados instantaneamente?
 ```bash
 cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate | Linux/Mac: source venv/bin/activate
+pip install -r requirements.txt
 python run_demo_real.py
 ```
 
@@ -101,6 +108,7 @@ docker compose up --build -d
 O projeto conta com suíte completa de testes unitários e de integração (**100% de aprovação - 15/15 testes**):
 ```bash
 cd backend
+# Certifique-se de que o ambiente virtual (venv) está ativo
 pytest -v
 ```
 
