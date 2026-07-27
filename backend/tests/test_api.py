@@ -1,6 +1,10 @@
 from fastapi.testclient import TestClient
 from main import app
 from triage import triagem_automatica
+import models
+from database import engine
+
+models.Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
